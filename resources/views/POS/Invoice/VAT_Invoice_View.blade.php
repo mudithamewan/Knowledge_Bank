@@ -114,6 +114,12 @@
                             <th style="color:#292561">DISCOUNT (0%)</th>
                             <td style="text-align: right;"><small>({{$INVOICE_DATA->in_discount_percentage}}%)</small> {{number_format($INVOICE_DATA->in_discount_amount,2)}}</td>
                         </tr>
+                        @if($INVOICE_DATA->in_returned_amount > 0)
+                        <tr>
+                            <th style="color:#292561">RETURNED</th>
+                            <td style="text-align: right;">{{number_format($INVOICE_DATA->in_returned_amount,2)}}</td>
+                        </tr>
+                        @endif
                         <tr>
                             <th style="color:#292561">TOTAL PAYABLE</th>
                             <td style="text-align: right;">{{number_format($INVOICE_DATA->in_total_payable - ($data->in_total_payable*$RATE),2)}}</td>
