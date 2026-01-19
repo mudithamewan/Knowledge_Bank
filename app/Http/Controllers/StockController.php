@@ -318,6 +318,7 @@ class StockController extends Controller
         $REMARK = "";
         $DISCOUNT_PERCENTAGE = trim($request->input('DISCOUNT_PERCENTAGE'));
         $DISCOUNT_AMOUNT = trim($request->input('DISCOUNT_AMOUNT'));
+        $RETURNED_INVOICE_AMOUNT = trim($request->input('RETURNED_INVOICE_AMOUNT'));
         $MPT_ID = trim($request->input('MPT_ID'));
         $CASH_PAID = trim($request->input('CASH_PAID'));
         $CARD_PAID = trim($request->input('CARD_PAID'));
@@ -396,12 +397,13 @@ class StockController extends Controller
                 'in_sub_total' => $SUB_TOTAL,
                 'in_discount_percentage' => $DISCOUNT_PERCENTAGE,
                 'in_discount_amount' => $DISCOUNT_AMOUNT,
-                'in_total_payable' => $SUB_TOTAL - $DISCOUNT_AMOUNT,
+                'in_returned_amount' => $RETURNED_INVOICE_AMOUNT,
+                'in_total_payable' => $SUB_TOTAL - ($DISCOUNT_AMOUNT + $RETURNED_INVOICE_AMOUNT),
                 'in_mpt_id' => $MPT_ID,
                 'in_cash_paid' => $CASH_PAID,
                 'in_card_paid' => $CARD_PAID,
                 'in_total_paid_amount' => $TOTAL_PAID_AMOUNT,
-                'in_total_balance' => ($SUB_TOTAL - $DISCOUNT_AMOUNT) -  $TOTAL_PAID_AMOUNT,
+                'in_total_balance' => ($SUB_TOTAL - ($DISCOUNT_AMOUNT + $RETURNED_INVOICE_AMOUNT)) -  $TOTAL_PAID_AMOUNT,
                 'in_customer_id' => $CUS_ID,
                 'in_is_corparate' => $IS_CORPARATE,
                 'in_is_returned' => 0,

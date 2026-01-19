@@ -111,6 +111,12 @@
             <td style="font-size: 7px; padding-bottom:2px;">DISCOUNT</td>
             <td style="text-align:right; font-size: 7px; padding-bottom:2px;">{{number_format($INVOICE_DATA->in_discount_amount,2)}}</td>
         </tr>
+        @if($INVOICE_DATA->in_returned_amount > 0)
+        <tr style="border-bottom: 0.3px solid #000;">
+            <td style="font-size: 7px; padding-bottom:2px;">RETURNED</td>
+            <td style="text-align:right; font-size: 7px; padding-bottom:2px;">{{number_format($INVOICE_DATA->in_returned_amount,2)}}</td>
+        </tr>
+        @endif
         <tr>
             <td class="bold" style="font-size: 7px; padding-top:2px;">TOTAL</td>
             <td class="bold" style="text-align:right; font-size: 7px; padding-top:2px;">{{number_format($INVOICE_DATA->in_total_payable,2)}}</td>
