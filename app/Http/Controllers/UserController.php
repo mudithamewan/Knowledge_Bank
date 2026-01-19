@@ -1528,4 +1528,97 @@ class UserController extends Controller
             }
         }
     }
+
+
+    public function validate_in_list_by_product_filter_result($request)
+    {
+        $ValidationModel = new ValidationModel();
+        $error = "";
+
+        $FROM_DATE = trim($request->input('FROM_DATE'));
+        $TO_DATE = trim($request->input('TO_DATE'));
+
+        $is_set_from_date = true;
+        $is_set_to_date = true;
+
+        if ($ValidationModel->is_invalid_data($FROM_DATE)) {
+            $is_set_from_date = false;
+            $error .= "- From Date cannot be empty<br>";
+        }
+        if ($ValidationModel->is_invalid_data($TO_DATE)) {
+            $is_set_to_date = false;
+            $error .= "- To Date cannot be empty<br>";
+        }
+
+        if ($is_set_from_date == true && $is_set_to_date == true) {
+            if ($ValidationModel->is_invalid_date_range($FROM_DATE, $TO_DATE)) {
+                $error .= "- Invalid date range<br>";
+            }
+        }
+
+        return $error;
+    }
+    public function load_invoiecs_by_organization(Request $request)
+    {
+        $DATA = json_decode(trim($request->input('DATA')));
+
+        $O_ID = $DATA->O_ID;
+
+        $view = (string)view('User/Load_Invoiecs_List', [
+            'O_ID' => $O_ID,
+        ]);
+        return json_encode(array('result' => $view));
+    }
+
+    public function load_invoiecs_by_organization_table(Request $request)
+    {
+        $status = $this->validate_in_list_by_product_filter_result($request);
+        if (!empty($status)) {
+            return json_encode(array('error' => $status));
+        } else {
+            $FROM_DATE = trim($request->input('FROM_DATE'));
+            $TO_DATE = trim($request->input('TO_DATE'));
+            $O_ID = trim($request->input('O_ID'));
+
+            $view = (string)view('User/Load_Invoiecs_List_Table', [
+                'FROM_DATE' => $FROM_DATE,
+                'TO_DATE' => $TO_DATE,
+                'O_ID' => $O_ID,
+            ]);
+            return json_encode(array('result' => $view));
+        }
+    }
+
+    public function load_invoiecs_by_organization_table_data(Request $request)
+    {
+        $status = $this->validate_in_list_by_product_filter_result($request);
+        if (!empty($status)) {
+            return json_encode(array('error' => $status));
+        } else {
+            $UserModel = new UserModel();
+
+            $FROM_DATE = trim($request->input('FROM_DATE'));
+            $TO_DATE = trim($request->input('TO_DATE'));
+            $O_ID = trim($request->input('O_ID'));
+            $DOWNLOAD = trim($request->input('DOWNLOAD'));
+
+            $result = $UserModel->get_filtered_invoiecs_organization(0, $FROM_DATE, $TO_DATE, $O_ID);
+
+            if ($DOWNLOAD == 'YES') {
+                $view = (string)view('User/Download/Product_In_List_Download', [
+                    'result' => $result,
+                ]);
+                header("Content-Type:   application/vnd.ms-excel; charset=utf-8");
+                header("Content-Disposition: attachment; filename=Filtered Users Download.xls");
+                header("Expires: 0");
+                header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+                header("Cache-Control: private", false);
+                echo $view;
+            } else {
+                if ($request->ajax()) {
+                    return datatables()->of($result)->toJson();
+                }
+            }
+        }
+    }
 }
