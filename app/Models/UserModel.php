@@ -283,7 +283,8 @@ class UserModel extends Model
 
     public function get_filtered_invoiecs_organization($IS_COUNT, $FROM_DATE = null, $TO_DATE = null, $O_ID)
     {
-
+        $formattedFromDate = date('Y-m-d', strtotime($FROM_DATE));
+        $formattedToDate = date('Y-m-d', strtotime($TO_DATE . ' +1 days'));
 
         $data = DB::table('invoices')
             ->join('master_payment_types', 'master_payment_types.mpt_id', '=', 'invoices.in_mpt_id')
@@ -291,19 +292,28 @@ class UserModel extends Model
             ->join('system_users', 'system_users.su_id', '=', 'invoices.in_inserted_by')
             ->where('invoices.in_is_corparate', 1)
             ->where('invoices.in_customer_id', $O_ID)
+            ->whereBetween('invoices.in_inserted_date', [$formattedFromDate, $formattedToDate])
             ->orderByDesc('invoices.in_inserted_date')
             ->select('*');
 
         if ($IS_COUNT == 1) {
             $result =  (string)$data->count();
         } else {
-            $formattedFromDate = date('Y-m-d', strtotime($FROM_DATE));
-            $formattedToDate = date('Y-m-d', strtotime($TO_DATE . ' +1 days'));
-
-            $data->whereBetween('invoices.in_inserted_date', [$formattedFromDate, $formattedToDate]);
             $result =  $data->get();
         }
 
         return  $result;
+    }
+
+    public function get_total_credit_amount($ORG_ID)
+    {
+        $credit = DB::table('invoices')
+            ->where('in_status', 1)
+            ->where('in_is_corparate', 1)
+            ->where('in_customer_id', $ORG_ID)
+            ->where('in_total_balance', '>', 0)
+            ->sum('in_total_balance');
+
+        return  $credit;
     }
 }
