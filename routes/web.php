@@ -158,6 +158,7 @@ Route::middleware(['check.islog'])->group(function () {
     Route::get('/get_corporate_customer_list', [POSController::class, 'get_corporate_customer_list'])->name('/get_corporate_customer_list')->middleware('checkAccess:19');
     Route::post('/get_corporate_customer', [POSController::class, 'get_corporate_customer'])->name('/get_corporate_customer')->middleware('checkAccess:19');
     Route::get('/PrintInvoice/{INVOICE_ID}', [POSController::class, 'PrintInvoice'])->name('/PrintInvoice');
+    Route::get('/PrintReturnInvoice/{RI_ID}', [POSController::class, 'PrintReturnInvoice'])->name('/PrintReturnInvoice');
     Route::post('/set_warehouse_session', [POSController::class, 'set_warehouse_session'])->name('/set_warehouse_session')->middleware('checkAccess:19');
     Route::post('/save_new_punch', [POSController::class, 'save_new_punch'])->name('/save_new_punch')->middleware('checkAccess:19');
     Route::get('/ALL_Punch_List', [POSController::class, 'ALL_Punch_List'])->name('/ALL_Punch_List')->middleware('checkAccess:36');
