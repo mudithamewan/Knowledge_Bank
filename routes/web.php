@@ -61,7 +61,6 @@ Route::middleware(['check.islog'])->group(function () {
     Route::post('/get_customer_filter_result_table', [UserController::class, 'get_customer_filter_result_table'])->name('/get_customer_filter_result_table')->middleware('checkAccess:32||33||34');
     Route::post('/load_edit_customer_view', [UserController::class, 'load_edit_customer_view'])->name('/load_edit_customer_view')->middleware('checkAccess:34');
     Route::post('/update_customer', [UserController::class, 'update_customer'])->name('/update_customer')->middleware('checkAccess:34');
-
     Route::post('/load_invoiecs_by_organization', [UserController::class, 'load_invoiecs_by_organization'])->name('/load_invoiecs_by_organization')->middleware('checkAccess:10||11||12');
     Route::post('/load_invoiecs_by_organization_table', [UserController::class, 'load_invoiecs_by_organization_table'])->name('/load_invoiecs_by_organization_table')->middleware('checkAccess:10||11||12');
     Route::post('/load_invoiecs_by_organization_table_data', [UserController::class, 'load_invoiecs_by_organization_table_data'])->name('/load_invoiecs_by_organization_table_data')->middleware('checkAccess:10||11||12');
