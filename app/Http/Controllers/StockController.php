@@ -357,13 +357,13 @@ class StockController extends Controller
                 return json_encode(array('error' => 'Invalid Quntiity!'));
             }
 
+
             $AB_DETAILS = $StockModel->get_available_stock_data_by_id($ID);
 
             if ($AB_DETAILS == false) {
                 return json_encode(array('error' => 'Available Stock cannot be accessed!'));
             } else {
                 $AVAILABLE_QTY = $AB_DETAILS->as_available_qty;
-
                 if ($AVAILABLE_QTY < $QTY) {
                     return json_encode(array(
                         'error' => "Insufficient stock for {$AB_DETAILS->p_name} (Code: {$AB_DETAILS->p_id}). " .

@@ -280,4 +280,30 @@ class UserModel extends Model
 
         return $data;
     }
+
+    public function get_filtered_invoiecs_organization($IS_COUNT, $FROM_DATE = null, $TO_DATE = null, $O_ID)
+    {
+
+
+        $data = DB::table('invoices')
+            ->join('master_payment_types', 'master_payment_types.mpt_id', '=', 'invoices.in_mpt_id')
+            ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'invoices.in_mw_id')
+            ->join('system_users', 'system_users.su_id', '=', 'invoices.in_inserted_by')
+            ->where('invoices.in_is_corparate', 1)
+            ->where('invoices.in_customer_id', $O_ID)
+            ->orderByDesc('invoices.in_inserted_date')
+            ->select('*');
+
+        if ($IS_COUNT == 1) {
+            $result =  (string)$data->count();
+        } else {
+            $formattedFromDate = date('Y-m-d', strtotime($FROM_DATE));
+            $formattedToDate = date('Y-m-d', strtotime($TO_DATE . ' +1 days'));
+
+            $data->whereBetween('invoices.in_inserted_date', [$formattedFromDate, $formattedToDate]);
+            $result =  $data->get();
+        }
+
+        return  $result;
+    }
 }

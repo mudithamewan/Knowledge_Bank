@@ -61,6 +61,10 @@ Route::middleware(['check.islog'])->group(function () {
     Route::post('/get_customer_filter_result_table', [UserController::class, 'get_customer_filter_result_table'])->name('/get_customer_filter_result_table')->middleware('checkAccess:32||33||34');
     Route::post('/load_edit_customer_view', [UserController::class, 'load_edit_customer_view'])->name('/load_edit_customer_view')->middleware('checkAccess:34');
     Route::post('/update_customer', [UserController::class, 'update_customer'])->name('/update_customer')->middleware('checkAccess:34');
+
+    Route::post('/load_invoiecs_by_organization', [UserController::class, 'load_invoiecs_by_organization'])->name('/load_invoiecs_by_organization')->middleware('checkAccess:10||11||12');
+    Route::post('/load_invoiecs_by_organization_table', [UserController::class, 'load_invoiecs_by_organization_table'])->name('/load_invoiecs_by_organization_table')->middleware('checkAccess:10||11||12');
+    Route::post('/load_invoiecs_by_organization_table_data', [UserController::class, 'load_invoiecs_by_organization_table_data'])->name('/load_invoiecs_by_organization_table_data')->middleware('checkAccess:10||11||12');
 });
 
 // Settings Controller
@@ -166,11 +170,9 @@ Route::middleware(['check.islog'])->group(function () {
     Route::post('/get_punch_filterd_table_data', [POSController::class, 'get_punch_filterd_table_data'])->name('/get_punch_filterd_table_data')->middleware('checkAccess:36');
     Route::post('/load_end_punch_view', [POSController::class, 'load_end_punch_view'])->name('/load_end_punch_view')->middleware('checkAccess:35||36');
     Route::post('/punch_end_action', [POSController::class, 'punch_end_action'])->name('/punch_end_action')->middleware('checkAccess:35||36');
-
     Route::get('/My_Punch_List', [POSController::class, 'My_Punch_List'])->name('/My_Punch_List')->middleware('checkAccess:35');
     Route::post('/get_my_punch_filterd_table', [POSController::class, 'get_my_punch_filterd_table'])->name('/get_my_punch_filterd_table')->middleware('checkAccess:35');
     Route::post('/get_my_punch_filterd_table_data', [POSController::class, 'get_my_punch_filterd_table_data'])->name('/get_my_punch_filterd_table_data')->middleware('checkAccess:35');
-
     Route::post('/load_return_view', [POSController::class, 'load_return_view'])->name('/load_return_view')->middleware('checkAccess:19');
     Route::post('/get_return_invoice_form', [POSController::class, 'get_return_invoice_form'])->name('/get_return_invoice_form')->middleware('checkAccess:19');
     Route::post('/return_invoice_action', [POSController::class, 'return_invoice_action'])->name('/return_invoice_action')->middleware('checkAccess:19');

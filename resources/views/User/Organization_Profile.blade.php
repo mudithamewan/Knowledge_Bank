@@ -232,48 +232,74 @@
                         </div>
 
                         <div class="col-xl-8">
+
+
+
                             <div class="card">
                                 <div class="card-header bg-transparent border-bottom">
                                     <div class="d-flex flex-wrap align-items-start">
                                         <div class="me-2">
-                                            <h5 class="card-title mt-1 mb-0 text-primary">DOCUMENTS</h5>
+                                            <h5 class="card-title mt-1 mb-0 text-primary">MORE DETAILS</h5>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="card-body">
-                                    <div class="row">
-                                        @if(empty($ORGANIZATION_DOCUMENTS))
-                                        Document not attached
-                                        @else
-                                        @foreach($ORGANIZATION_DOCUMENTS as $DOC)
-                                        <div class="col-xl-2 m-2">
 
-                                            <div class="card shadow-sm border-0 mb-0 h-100">
-                                                <a href="{{url('/')}}/{{ $DOC->od_file_path }}" target="_blank" download>
-                                                    <div class="card-body text-center mb-0">
-                                                        <i class="bx bx-file display-5 text-dark"></i>
-                                                        <p class="text-truncate text-dark mb-0" title="{{ $DOC->od_original_name }}">
-                                                            {{ $DOC->od_original_name }}
-                                                        </p>
-                                                    </div>
-                                                </a>
+                                    <ul class="nav nav-tabs" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" data-bs-toggle="tab" href="#INVOICES" role="tab" onclick="ajax_action('<?= url('/') ?>/load_invoiecs_by_organization','INVOICES','<?= htmlspecialchars(json_encode(['O_ID' => $ORGANIZATION_DETAILS->o_id]), ENT_QUOTES, 'UTF-8') ?>','{{ csrf_token() }}')">
+                                                <span class="d-block d-sm-none"><i class="bx bxs-file"></i></span>
+                                                <span class="d-none d-sm-block">INVOICES</span>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#ORG_DOCUMENTS" role="tab">
+                                                <span class="d-block d-sm-none"><i class="bx bxs-calculator"></i></span>
+                                                <span class="d-none d-sm-block">DOCUMENTS</span>
+                                            </a>
+                                        </li>
+                                    </ul>
 
-                                                @if(in_array("11", session('USER_ACCESS_AREA')))
-                                                <div class="text-center mb-2">
-                                                    <a href="#{{$DOC->od_id}}" class="text-danger" onclick="remove_doc('{{$DOC->od_id}}')">Remove</a>
-                                                </div>
-                                                @endif
-
-                                            </div>
-
+                                    <div class="tab-content m-2 text-muted">
+                                        <div class="tab-pane active" id="INVOICES" role="tabpanel">
+                                            <h6 class="mt-3"><b>INVOICES</b></h6>
+                                            <div id="INVOICES_VIEW" class="border rounded p-3 VIEW_EMPTY" style="margin-top: 8px;"></div>
                                         </div>
-                                        @endforeach
-                                        @endif
+                                        <div class="tab-pane " id="ORG_DOCUMENTS" role="tabpanel">
+                                            <h6 class="mt-3"><b>DOCUMENTS</b></h6>
+                                            <div id="DOCUMENTS_VIEW" class="border rounded p-3" style="margin-top: 8px;">
+                                                <div class="row">
+                                                    @if(empty($ORGANIZATION_DOCUMENTS))
+                                                    Document not attached
+                                                    @else
+                                                    @foreach($ORGANIZATION_DOCUMENTS as $DOC)
+                                                    <div class="col-xl-2 m-2">
+                                                        <div class="card shadow-sm border-0 mb-0 h-100">
+                                                            <a href="{{url('/')}}/{{ $DOC->od_file_path }}" target="_blank" download>
+                                                                <div class="card-body text-center mb-0">
+                                                                    <i class="bx bx-file display-5 text-dark"></i>
+                                                                    <p class="text-truncate text-dark mb-0" title="{{ $DOC->od_original_name }}">
+                                                                        {{ $DOC->od_original_name }}
+                                                                    </p>
+                                                                </div>
+                                                            </a>
+                                                            @if(in_array("11", session('USER_ACCESS_AREA')))
+                                                            <div class="text-center mb-2">
+                                                                <a href="#{{$DOC->od_id}}" class="text-danger" onclick="remove_doc('{{$DOC->od_id}}')">Remove</a>
+                                                            </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    @endforeach
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
+
 
                                 </div>
                             </div>
-
 
                         </div>
 
@@ -345,4 +371,6 @@
 
 
     }
+
+    ajax_action('<?= url('/') ?>/load_invoiecs_by_organization', 'INVOICES', '<?= json_encode(['O_ID' => $ORGANIZATION_DETAILS->o_id]) ?>', '{{ csrf_token() }}')
 </script>
