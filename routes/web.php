@@ -20,6 +20,7 @@ Route::get('/logout', [AuthenticationController::class, 'logout'])->name('/logou
 // Dashboard Controller
 Route::middleware(['check.islog'])->group(function () {
     Route::get('/Dashboard', [DashboardController::class, 'index'])->name('/Dashboard')->middleware('checkAccess:1');
+    Route::post('/Load_Widget', [DashboardController::class, 'Load_Widget'])->name('/Load_Widget')->middleware('checkAccess:1');
 });
 
 // User Controller
