@@ -170,6 +170,11 @@
                         <th>ITEM DESCRIPTION</th>
                         <th>UNIT PRICE (LKR)</th>
                         <th>QTY</th>
+
+                        @if($INVOICE_DATA->in_is_returned == 1 || $INVOICE_DATA->in_is_partial_returned == 1)
+                        <th>RETURNED QTY</th>
+                        @endif
+
                         <th>PRICE (LKR)</th>
                         <th>DIS.%</th>
                         <th>TOTAL</th>
@@ -187,6 +192,11 @@
                         <td>{{$data->p_name}}</td>
                         <td class="text-right">{{number_format($data->ini_selling_price,2)}}</td>
                         <td class="text-right">{{$data->ini_qty}}</td>
+
+                        @if($INVOICE_DATA->in_is_returned == 1 || $INVOICE_DATA->in_is_partial_returned == 1)
+                        <td class="text-right">{{$data->ini_returned_qty}}</td>
+                        @endif
+
                         <td class="text-right">{{number_format(($data->ini_selling_price * $data->ini_qty),2)}}</td>
                         <td class="text-right">{{$data->ini_discount_percentage}}</td>
                         <td class="text-right">{{number_format(($data->ini_final_price * $data->ini_qty),2)}}</td>

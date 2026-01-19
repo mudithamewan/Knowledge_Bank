@@ -910,6 +910,7 @@
                 },
                 success: function(response) {
                     if (response.success) {
+
                         // show & print invoice
                         loadPrintInvoice(`{{url('/')}}/PrintInvoice/` + encodeURIComponent(btoa(response.in_id)));
                         // then clear POS for next bill

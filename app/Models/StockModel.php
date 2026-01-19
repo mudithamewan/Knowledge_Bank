@@ -473,6 +473,29 @@ class StockModel extends Model
         return $result;
     }
 
+    public function get_returned_invoice_data_by_id($RI_ID)
+    {
+        $result = DB::table('returned_invoices')
+            ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'returned_invoices.ri_mw_id')
+            ->join('invoices', 'invoices.in_id', '=', 'returned_invoices.ri_in_id')
+            ->where('returned_invoices.ri_id', $RI_ID)
+            ->first();
+
+        return $result;
+    }
+
+    public function get_returned_invoice_items_by_id($RI_ID)
+    {
+        $result = DB::table('returned_invoice_items')
+            ->join('returned_invoices', 'returned_invoices.ri_id', '=', 'returned_invoice_items.rii_ri_id')
+            ->join('products', 'products.p_id', '=', 'returned_invoice_items.rii_p_id')
+            ->where('returned_invoice_items.rii_status', 1)
+            ->where('returned_invoices.ri_id', $RI_ID)
+            ->get();
+
+        return $result;
+    }
+
     public function get_invoice_data_by_invoice_number($INVOICE_NUMBER)
     {
         $result = DB::table('invoices')
@@ -496,6 +519,9 @@ class StockModel extends Model
 
         return $result;
     }
+
+
+
 
     public function get_product_available_list($P_ID)
     {

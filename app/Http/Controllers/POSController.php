@@ -609,6 +609,7 @@ class POSController extends Controller
     {
         $StockModel = new StockModel();
         $CommonModel = new CommonModel();
+        $SettingsModel = new SettingsModel();
 
         $INVOICE_ID = trim($request->input('INVOICE_ID'));
         $REMARK = trim($request->input('REMARK'));
@@ -616,9 +617,14 @@ class POSController extends Controller
         $INVOICE_AMOUNT = trim($request->input('INVOICE_AMOUNT'));
         $RETURNED_ITEMS_AMOUNT = trim($request->input('RETURNED_ITEMS_AMOUNT'));
         $RETURNED_ITEMS = explode(",", trim($request->input('RETURNED_ITEMS')));
+        $TYPE = trim($request->input('TYPE'));
 
         if ($RETURNED_ITEMS_AMOUNT <= 0) {
             return json_encode(array('error' => "Returned items not selected."));
+        }
+
+        if (empty($TYPE)) {
+            return json_encode(array('error' => "Retrun type not selected."));
         }
 
         $INVOICE_DATA = $StockModel->get_invoice_data_by_id($INVOICE_ID);
@@ -627,38 +633,57 @@ class POSController extends Controller
         DB::beginTransaction();
         try {
 
-
             if ($INVOICE_AMOUNT == $RETURNED_ITEMS_AMOUNT) {
+                $full_return = 1;
+                $partial_return = 0;
                 $data1 = array(
                     'in_is_returned' => 1,
                     'in_returned_date' => date('Y-m-d H:i:s'),
                     'in_returned_by' => session('USER_ID'),
                     'in_returned_mw_id' => $MW_ID,
                     'in_returned_remark' => $REMARK,
+                    'in_returned_type' => $TYPE,
                 );
             } else {
+                $full_return = 0;
+                $partial_return = 1;
                 $data1 = array(
                     'in_is_partial_returned' => 1,
                     'in_returned_date' => date('Y-m-d H:i:s'),
                     'in_returned_by' => session('USER_ID'),
                     'in_returned_mw_id' => $MW_ID,
                     'in_returned_remark' => $REMARK,
+                    'in_returned_type' => $TYPE,
                 );
             }
             DB::table('invoices')
                 ->where('in_id', $INVOICE_ID)
                 ->update($data1);
 
+
+
+            $RETURNED_ITEMS_ARRAY = [];
+            $RETURNED_ITEMS_QTY_ARRAY = [];
+            foreach ($RETURNED_ITEMS as $item) {
+                [$iniId, $qty] = explode(':', $item);
+
+                $RETURNED_ITEMS_ARRAY[] = $iniId;
+                $RETURNED_ITEMS_QTY_ARRAY[$iniId] = $qty;
+            }
+
             $ITEMS = array();
             $TOTAL_PURCHASE_AMOUNT = 0;
             $TOTAL_SELLING_AMOUNT = 0;
             $TOTAL_QTY = 0;
+            $TOTAL_PU_AMT = 0;
             foreach ($INVOICE_ITEMS_DATA as $data) {
-                if (in_array($data->ini_id, $RETURNED_ITEMS)) {
+
+                if (in_array($data->ini_id, $RETURNED_ITEMS_ARRAY)) {
                     $data2 = array(
                         'ini_is_returned' => 1,
                         'ini_updated_date' => date('Y-m-d H:i:s'),
                         'ini_updated_by' => session('USER_ID'),
+                        'ini_returned_qty' => $RETURNED_ITEMS_QTY_ARRAY[$data->ini_id],
                     );
                     DB::table('invoice_items')
                         ->where('ini_id', $data->ini_id)
@@ -668,12 +693,62 @@ class POSController extends Controller
                         'id' => $data->ini_p_id,
                         'purchase' => 0,
                         'selling' => $data->ini_selling_price,
-                        'qty' => $data->ini_qty,
+                        'qty' => $RETURNED_ITEMS_QTY_ARRAY[$data->ini_id],
                     );
                     $TOTAL_SELLING_AMOUNT = $TOTAL_SELLING_AMOUNT + $data->ini_selling_price;
-                    $TOTAL_QTY = $TOTAL_QTY + $data->ini_qty;
+                    $TOTAL_QTY = $TOTAL_QTY + $RETURNED_ITEMS_QTY_ARRAY[$data->ini_id];
+                    $TOTAL_PU_AMT = $TOTAL_PU_AMT + ($data->ini_final_price * $RETURNED_ITEMS_QTY_ARRAY[$data->ini_id]);
                 }
             }
+
+            $RI_ID = 0;
+            $PRINT_RETURN_INVOICE = false;
+            if ($TYPE == 'RETURN_MONEY') {
+                $WAREHOUSE_DATA = $SettingsModel->get_stock_location_details_by_id($MW_ID);
+                if (!in_array($WAREHOUSE_DATA->mwt_id, [1, 3])) {
+                    $PUNCH = $SettingsModel->get_active_punch($WAREHOUSE_DATA->mw_id);
+                    if ($PUNCH == false) {
+                        return json_encode(array('error' => "You havent active punch."));
+                    } else {
+                        $data = array(
+                            'pu_amount' => $PUNCH->pu_amount + $TOTAL_PU_AMT
+                        );
+                        DB::table('punches')
+                            ->where('pu_id', $PUNCH->pu_id)
+                            ->update($data);
+                    }
+                }
+            } else if ($TYPE == 'RETURN_INVOICE') {
+                $PRINT_RETURN_INVOICE = true;
+
+                $data3 = array(
+                    'ri_status' => 1,
+                    'ri_inserted_date' => date('Y-m-d H:i:s'),
+                    'ri_inserted_by' => session('USER_ID'),
+                    'ri_in_id' => $INVOICE_ID,
+                    'ri_amount' => $TOTAL_PU_AMT,
+                    'ri_is_returned' => $full_return,
+                    'ri_is_partial_returned' => $partial_return,
+                    'ri_mw_id' => $MW_ID,
+                );
+                $RI_ID = DB::table('returned_invoices')->insertGetId($data3);
+
+                foreach ($INVOICE_ITEMS_DATA as $data) {
+                    if (in_array($data->ini_id, $RETURNED_ITEMS_ARRAY)) {
+                        $data4 = array(
+                            'rii_status' => 1,
+                            'rii_inserted_date' => date('Y-m-d H:i:s'),
+                            'rii_inserted_by' => session('USER_ID'),
+                            'rii_ri_id' => $RI_ID,
+                            'rii_p_id' => $data->ini_p_id,
+                            'rii_selling_amount' => $data->ini_selling_price,
+                            'rii_qty' => $RETURNED_ITEMS_QTY_ARRAY[$data->ini_id],
+                        );
+                        DB::table('returned_invoice_items')->insert($data4);
+                    }
+                }
+            }
+
 
             $STOCK_IN_ID = $StockModel->stock_in($REMARK, $ITEMS, $TOTAL_PURCHASE_AMOUNT, $TOTAL_SELLING_AMOUNT, $TOTAL_QTY, $MW_ID, 'RETURNED');
 
@@ -683,7 +758,7 @@ class POSController extends Controller
 
             $CommonModel->update_work_log(session('USER_ID'), 'An invoice has been returned. Invoice: ' . $INVOICE_DATA->in_invoice_no);
             DB::commit();
-            return json_encode(array('in_id' => $INVOICE_DATA->in_id, 'success' => 'An invoice has been returned.'));
+            return json_encode(array('in_id' => $INVOICE_DATA->in_id, 'success' => 'An invoice has been returned.', 'print_invoice' => $PRINT_RETURN_INVOICE, 'ri_id' => $RI_ID));
         } catch (\Exception $e) {
             DB::rollback();
             return json_encode(array('error' => "An error occurred. Rollback executed. <br> Error: " . $e));
@@ -693,5 +768,33 @@ class POSController extends Controller
     public function load_order_to_pos(Request $request)
     {
         $OR_ID = trim($request->input('or_id'));
+    }
+
+    public function PrintReturnInvoice($RI_ID)
+    {
+        $RI_ID = urldecode(base64_decode($RI_ID));
+
+        $StockModel = new StockModel();
+
+        $RETURNED_INVOICE_DATA = $StockModel->get_returned_invoice_data_by_id($RI_ID);
+        $RETURNED_INVOICE_ITEMS_DATA = $StockModel->get_returned_invoice_items_by_id($RI_ID);
+
+        $INVOICE_DATA = $StockModel->get_invoice_data_by_id($RETURNED_INVOICE_DATA->ri_in_id);
+        $INVOICE_ITEMS_DATA = $StockModel->get_invoice_items_by_id($RETURNED_INVOICE_DATA->ri_in_id);
+
+
+        $pdf = Pdf::loadView('POS.Invoice.Returned_Thermal_Print_View', [
+            'RETURNED_INVOICE_DATA' => $RETURNED_INVOICE_DATA,
+            'RETURNED_INVOICE_ITEMS_DATA' => $RETURNED_INVOICE_ITEMS_DATA,
+            'INVOICE_DATA' => $INVOICE_DATA,
+            'INVOICE_ITEMS_DATA' => $INVOICE_ITEMS_DATA,
+        ])
+            ->setPaper([0, 0, 226.77, 1000], 'portrait') // 80mm width
+            ->setOption('margin-top', 0)
+            ->setOption('margin-right', 0)
+            ->setOption('margin-bottom', 0)
+            ->setOption('margin-left', 0);
+
+        return $pdf->stream('Invoice.pdf'); // or ->download('invoice.pdf')
     }
 }

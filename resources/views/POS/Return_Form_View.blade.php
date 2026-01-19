@@ -186,6 +186,7 @@
                                     <th>ITEM DESCRIPTION</th>
                                     <th>UNIT PRICE (LKR)</th>
                                     <th>QTY</th>
+                                    <th>RETURNED QTY</th>
                                     <th>PRICE (LKR)</th>
                                     <th>DIS.%</th>
                                     <th>TOTAL</th>
@@ -206,6 +207,9 @@
                                     <td>{{$data->p_name}}</td>
                                     <td class="text-right">{{number_format($data->ini_selling_price,2)}}</td>
                                     <td class="text-right">{{$data->ini_qty}}</td>
+                                    <td class="text-right" width="12%">
+                                        <input type="number" class="form-control form-control-sm returned-qty" min="1" max="{{$data->ini_qty}}" value="{{$data->ini_qty}}" data-unit-price="{{$data->ini_final_price}}" data-max="{{$data->ini_qty}}">
+                                    </td>
                                     <td class="text-right">{{number_format(($data->ini_selling_price * $data->ini_qty),2)}}</td>
                                     <td class="text-right">{{$data->ini_discount_percentage}}</td>
                                     <td class="text-right">{{number_format(($data->ini_final_price * $data->ini_qty),2)}}</td>
@@ -315,6 +319,18 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-xl-12">
+                            <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+
+                                <input type="radio" class="btn-check" name="TYPE" id="RETURN_INVOICE" value="RETURN_INVOICE" autocomplete="off">
+                                <label class="btn btn-outline-secondary" for="RETURN_INVOICE">RETURN INVOICE</label>
+
+                                <input type="radio" class="btn-check" name="TYPE" id="RETURN_MONEY" value="RETURN_MONEY" autocomplete="off">
+                                <label class="btn btn-outline-secondary" for="RETURN_MONEY">RETURN MONEY</label>
+                            </div>
+                        </div>
+
                         <div class="col-xl-12">
                             <label for="">Remark</label>
                             <textarea name="REMARK" id="REMARK" class="form-control" rows="3" maxlength="255"></textarea>
@@ -410,40 +426,83 @@
         ------------------------------ */
         function updateReturnedAmount() {
             let total = 0;
-            let selected = [];
+            let returnedItems = [];
 
-            $('.return-item:checked').each(function() {
-                total += parseFloat($(this).data('total'));
-                selected.push($(this).val());
+            $('.tbl tbody tr').each(function() {
+
+                const row = $(this);
+                const checkbox = row.find('.return-item');
+
+                // Skip rows without checkbox or unchecked
+                if (!checkbox.length || !checkbox.is(':checked')) {
+                    return;
+                }
+
+                const itemId = checkbox.val();
+                const qtyInput = row.find('.returned-qty');
+
+                const unitPrice = parseFloat(qtyInput.data('unit-price'));
+                const maxQty = parseInt(qtyInput.data('max'));
+
+                let returnedQty = parseInt(qtyInput.val()) || 0;
+
+                // Safety guards
+                if (returnedQty < 1) returnedQty = 1;
+                if (returnedQty > maxQty) returnedQty = maxQty;
+
+                qtyInput.val(returnedQty);
+
+                // Amount calc
+                total += unitPrice * returnedQty;
+
+                // Push ID + QTY
+                returnedItems.push(itemId + ':' + returnedQty);
             });
 
+            // Update UI
             $('#RETURNED_ITEMS_AMT').text(
                 'LKR ' + total.toLocaleString('en-US', {
                     minimumFractionDigits: 2
                 })
             );
 
-            $('#RETURNED_ITEMS_AMOUNT').val(total);
-
-            $('input[name="RETURNED_ITEMS"]').val(selected.join(','));
+            // Hidden inputs
+            $('#RETURNED_ITEMS_AMOUNT').val(total.toFixed(2));
+            $('input[name="RETURNED_ITEMS"]').val(returnedItems.join(','));
         }
 
-        $(document).on('change', '.return-item', updateReturnedAmount);
+
+        // checkbox click
+        $(document).on('change', '.return-item', function() {
+            updateReturnedAmount();
+        });
+
+        // qty typing
+        $(document).on('input change', '.returned-qty', function() {
+            updateReturnedAmount();
+        });
+
+        // auto-check when qty edited (UX win)
+        $(document).on('input', '.returned-qty', function() {
+            const row = $(this).closest('tr');
+            const checkbox = row.find('.return-item');
+
+            if (checkbox.length && !checkbox.is(':checked')) {
+                checkbox.prop('checked', true);
+            }
+        });
 
     });
 
 
     function loadPrintInvoice(pdfUrl) {
-        // open modal
-        const modal = new bootstrap.Modal(document.getElementById('return_modal_view'));
-        modal.show();
+        // const modal = new bootstrap.Modal(document.getElementById('invoice_view2'));
+        // modal.show();
 
-        // hide any previous view
         const pdfFrame = document.getElementById('pdfFrame');
         pdfFrame.style.display = 'block';
         pdfFrame.src = pdfUrl;
 
-        // wait till PDF loads, then print
         pdfFrame.onload = function() {
             pdfFrame.contentWindow.focus();
             pdfFrame.contentWindow.print();
@@ -474,9 +533,16 @@
                 success: function(data) {
 
                     if (data.success) {
-                        loadPrintInvoice(`{{url('/')}}/PrintInvoice/` + encodeURIComponent(btoa(data.in_id)));
+                        if (data.print_invoice == true) {
+                            loadPrintInvoice(`{{url('/')}}/PrintReturnInvoice/` + encodeURIComponent(btoa(data.ri_id)));
+                        }
                         $('#RETURN_FORM_SUBMIT_BTN').html('<button class="btn btn-danger w-100" disabled>RETURNED</button>');
                         $('#success_msg').html('<div class="alert alert-success" role="alert">' + data.success + '</div>');
+
+                        const closeButton1 = document.querySelector('#return_modal .btn[data-bs-dismiss="modal"]');
+                        if (closeButton1) {
+                            closeButton1.click();
+                        }
                     } else if (data.error) {
                         Swal.fire('Error!', data.error, 'error');
                         $('#RETURN_FORM_SUBMIT_BTN').html('<button class="btn btn-danger w-100" type="submit">SUBMIT</button>');
