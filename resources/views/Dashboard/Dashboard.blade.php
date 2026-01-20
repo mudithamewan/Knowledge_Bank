@@ -38,7 +38,7 @@
                                         </div>
                                         <div class="ms-3">
                                             <p class="text-muted mb-2">TODAY SALE</p>
-                                            <h5 class="mb-0 counter" data-value="{{ $TODAY_DATA->total_sale }}">
+                                            <h5 class="mb-0 counter" data-value="{{ ($TODAY_DATA->total_sale?? 0) }}">
                                                 0.00
                                             </h5>
                                         </div>
@@ -51,7 +51,7 @@
                                         </div>
                                         <div class="ms-3">
                                             <p class="text-muted mb-2">TODAY COLLECTION</p>
-                                            <h5 class="mb-0 counter" data-value="{{ $TODAY_DATA->total_collection }}">
+                                            <h5 class="mb-0 counter" data-value="{{ ($TODAY_DATA->total_collection?? 0) }}">
                                                 0.00
                                             </h5>
                                         </div>
@@ -64,7 +64,7 @@
                                         </div>
                                         <div class="ms-3">
                                             <p class="text-muted mb-2">TODAY CREDIT</p>
-                                            <h5 class="mb-0 counter" data-value="{{ $TODAY_DATA->total_credit }}">
+                                            <h5 class="mb-0 counter" data-value="{{ ($TODAY_DATA->total_credit?? 0) }}">
                                                 0.00
                                             </h5>
                                         </div>
@@ -84,7 +84,7 @@
                                         </div>
                                         <div class="ms-3">
                                             <p class="text-muted mb-2">MONTH SALE</p>
-                                            <h5 class="mb-0 counter" data-value="{{ $TODAY_DATA->total_sale }}">
+                                            <h5 class="mb-0 counter" data-value="{{ ($MONTH_DATA->total_sale?? 0) }}">
                                                 0.00
                                             </h5>
                                         </div>
@@ -97,7 +97,7 @@
                                         </div>
                                         <div class="ms-3">
                                             <p class="text-muted mb-2">MONTH COLLECTION</p>
-                                            <h5 class="mb-0 counter" data-value="{{ $TODAY_DATA->total_collection }}">
+                                            <h5 class="mb-0 counter" data-value="{{ ($MONTH_DATA->total_collection?? 0) }}">
                                                 0.00
                                             </h5>
                                         </div>
@@ -110,7 +110,7 @@
                                         </div>
                                         <div class="ms-3">
                                             <p class="text-muted mb-2">MONTH CREDIT</p>
-                                            <h5 class="mb-0 counter" data-value="{{ $TODAY_DATA->total_credit }}">
+                                            <h5 class="mb-0 counter" data-value="{{ ($MONTH_DATA->total_credit?? 0) }}">
                                                 0.00
                                             </h5>
                                         </div>
@@ -118,6 +118,30 @@
                                 </div>
                             </div>
                             <span id="monthly_status"></span>
+                        </div>
+
+
+                        <div class="col-xl-6">
+
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="clearfix">
+                                        <div class="float-end">
+                                            <div class="input-group input-group-sm">
+                                                <select class="form-select form-select-sm" id="MW_ID" onchange="loadWidget('warehouse_status')">
+                                                    @foreach($WAREHOUSES as $WAREHOUSE)
+                                                    <option value="{{$WAREHOUSE->mw_id}}">{{$WAREHOUSE->mw_name}}</option>
+                                                    @endforeach
+                                                </select>
+                                                <label class="input-group-text">Locations</label>
+                                            </div>
+                                        </div>
+                                        <h4 class="card-title text-primary mb-4">STOCK LOCATIONS WISE SALES OVERVIEW</h4>
+                                    </div>
+                                    <span id="warehouse_status"></span>
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>
@@ -173,11 +197,15 @@
 
 
     function loadWidget(type) {
-        $('#' + type).html('<h1 class="display-1" style="color:#efedfc"><i class="bx bx-loader bx-spin align-middle me-2"></i> Loading...</h1>');
+        $('#' + type).html('<center><h1 class="display-4 mb-3" style="color:#efedfc"><i class="bx bx-loader bx-spin align-middle me-2"></i> Loading...</h1></center>');
         var link = '<?php echo url('/')  ?>/Load_Widget';
         const formData = new FormData();
         formData.append('type', type);
         formData.append('_token', "<?= csrf_token() ?>");
+
+        if (type == 'warehouse_status') {
+            formData.append('MW_ID', $('#MW_ID').val());
+        }
 
         $.ajax({
             type: 'POST',
@@ -204,4 +232,5 @@
 
     loadWidget('daily_status');
     loadWidget('monthly_status');
+    loadWidget('warehouse_status')
 </script>
