@@ -45,7 +45,7 @@ class DashboardController extends Controller
         $TYPE = $request->input('type');
         $function = "get_" . $TYPE;
 
-        if ($TYPE == 'warehouse_status') {
+        if ($TYPE == 'warehouse_status' || $TYPE == 'product_stock') {
             $MW_ID = $request->input('MW_ID');
             $view = $this->$function($MW_ID);
         } else {
@@ -53,6 +53,17 @@ class DashboardController extends Controller
         }
 
         return json_encode(array('result' => $view));
+    }
+
+    public function get_product_stock($MW_ID)
+    {
+        $DashboardModel = new DashboardModel();
+        $STOCK =  $DashboardModel->get_product_stocks($MW_ID);
+
+        $view = (string) view('Dashboard/Product_Stock', [
+            'STOCK' => $STOCK,
+        ]);
+        return $view;
     }
 
     public function get_warehouse_status($MW_ID)

@@ -144,6 +144,31 @@
 
                         </div>
 
+                        <div class="col-xl-6">
+
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="clearfix">
+                                        <div class="float-end">
+                                            <div class="input-group input-group-sm">
+                                                <select class="form-select form-select-sm" id="MW_ID2" onchange="loadWidget('product_stock')">
+                                                    @foreach($WAREHOUSES as $WAREHOUSE)
+                                                    <option value="{{$WAREHOUSE->mw_id}}">{{$WAREHOUSE->mw_name}}</option>
+                                                    @endforeach
+                                                </select>
+                                                <label class="input-group-text">Locations</label>
+                                            </div>
+                                        </div>
+                                        <h4 class="card-title text-primary mb-4">PRODUCT STOCKS</h4>
+                                    </div>
+                                    <div style="height: 41vh; overflow-y: auto;">
+                                        <span id="product_stock"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
                     </div>
 
                 </div>
@@ -205,6 +230,8 @@
 
         if (type == 'warehouse_status') {
             formData.append('MW_ID', $('#MW_ID').val());
+        } else if (type == 'product_stock') {
+            formData.append('MW_ID', $('#MW_ID2').val());
         }
 
         $.ajax({
@@ -232,5 +259,6 @@
 
     loadWidget('daily_status');
     loadWidget('monthly_status');
-    loadWidget('warehouse_status')
+    loadWidget('warehouse_status');
+    loadWidget('product_stock');
 </script>
