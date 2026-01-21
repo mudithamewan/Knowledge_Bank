@@ -11,7 +11,7 @@
         @foreach($STOCK as $PRODUCT)
         <tr>
             <td>{{$PRODUCT->p_id}}</td>
-            <td>{{$PRODUCT->p_name}}<br><small class="text-primary">{{$PRODUCT->p_isbn}}</small></td>
+            <td>{{$PRODUCT->p_name}}<br><a href="{{url('/')}}/Product_Profile/{{urlencode(base64_encode($PRODUCT->p_id))}}"><small class="text-primary">{{$PRODUCT->p_isbn}}</small></a></td>
             <td>{{$PRODUCT->mc_name}}</td>
             <td style="text-align: center;">{{($PRODUCT->as_available_qty??0)}}</td>
         </tr>
