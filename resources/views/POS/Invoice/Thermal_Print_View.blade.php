@@ -137,6 +137,13 @@
     <div class="center" style="font-size:6px">- NO CASH REFUNDS -</div>
 
     <hr>
+
+    <div class="center" style="margin-top:6px;">
+        {!! DNS1D::getBarcodeHTML($INVOICE_DATA->in_invoice_no, 'C128', 1, 25) !!}
+        <div style="font-size:7px; margin-top:2px;">
+            {{$INVOICE_DATA->in_invoice_no}}
+        </div>
+    </div>
 </body>
 
 </html>

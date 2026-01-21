@@ -80,6 +80,13 @@
     <div class="center bold" style="font-size: 8px">THANK YOU, COME AGAIN!</div>
 
     <hr>
+
+    <div class="center" style="margin-top:6px; text-align:center;">
+        {!! DNS1D::getBarcodeHTML(("RETURN_INVOICE_".$RETURNED_INVOICE_DATA->ri_id), 'C128', 1, 25) !!}
+        <div style="font-size:7px; margin-top:2px;">
+            {{$RETURNED_INVOICE_DATA->ri_id}}
+        </div>
+    </div>
 </body>
 
 </html>
