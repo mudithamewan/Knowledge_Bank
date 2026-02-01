@@ -48,7 +48,7 @@
 
                 @if(isset($CUSTOMER_DETAILS->o_id))
                 @if($CUSTOMER_DETAILS->o_is_vat_registered == 1)
-                <b>Purchaser's TIN:</b> {{$INVOICE_DATA->o_vat_registered_number}} <br>
+                <b>Purchaser's TIN:</b> {{$CUSTOMER_DETAILS->o_vat_registered_number}} <br>
                 @endif
                 <b>Purchaser's Name:</b> {{$CUSTOMER_DETAILS->o_name}} <br>
                 <b>Address:</b> {{$CUSTOMER_DETAILS->o_address}} <br>
@@ -99,30 +99,30 @@
             <td style="text-align: right;">{{number_format((($data->ini_final_price - ($data->ini_final_price*$RATE)) * $data->ini_qty),2)}}</td>
         </tr>
         @endforeach
-    </table>
 
-    <table width="100%">
         <tr>
-            <th style="text-align: left;">Total Value of Supply:</th>
+            <th style="text-align: left;" colspan="4">Total Value of Supply:</th>
             <td style="text-align: right;">{{number_format($INVOICE_DATA->in_sub_total - ($data->in_sub_total*$RATE),2)}}</td>
         </tr>
         <tr>
-            <th style="text-align: left;">Discount {{$INVOICE_DATA->in_discount_percentage}}%:</th>
+            <th style="text-align: left;" colspan="4">Discount {{$INVOICE_DATA->in_discount_percentage}}%:</th>
             <td style="text-align: right;">{{number_format($INVOICE_DATA->in_discount_amount,2)}}</td>
         </tr>
         <tr>
-            <th style="text-align: left;">Gross Amount:</th>
+            <th style="text-align: left;" colspan="4">Gross Amount:</th>
             <td style="text-align: right;">{{number_format(($INVOICE_DATA->in_sub_total - ($data->in_sub_total*$RATE)) - $INVOICE_DATA->in_discount_amount,2)}}</td>
         </tr>
         <tr>
-            <th style="text-align: left;">VAT Amount (Total Value of Supply @ {{$INVOICE_DATA->in_vat_rate}}%)</th>
+            <th style="text-align: left;" colspan="4">VAT Amount (Total Value of Supply @ {{$INVOICE_DATA->in_vat_rate}}%)</th>
             <td style="text-align: right;">{{number_format(($data->in_total_payable + $INVOICE_DATA->in_discount_amount)*$RATE,2)}}</td>
         </tr>
         <tr>
-            <th style="text-align: left;">Total Amount including VAT (Net Amount):</th>
+            <th style="text-align: left;" colspan="4">Total Amount including VAT (Net Amount):</th>
             <td style="text-align: right;">{{number_format(($INVOICE_DATA->in_total_payable),2)}}</td>
         </tr>
     </table>
+
+
 
 
     <table width="100%">
