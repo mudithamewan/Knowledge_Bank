@@ -767,7 +767,12 @@ class POSController extends Controller
 
     public function load_order_to_pos(Request $request)
     {
+        $OrdersModel = new OrdersModel();
+
         $OR_ID = trim($request->input('or_id'));
+
+        $ORDER = $OrdersModel->get_order_details($OR_ID);
+        $ORDER_ITEMS = $OrdersModel->get_order_item_details($OR_ID);
     }
 
     public function PrintReturnInvoice($RI_ID)

@@ -713,7 +713,7 @@
                         <div class="list-group-item d-flex justify-content-between align-items-center list-group-item-action">
                             <div>
                                 <h6 class="mb-1">${product.p_name}</h6>
-                                <small>Barcode: ${product.p_isbn} | Code: ${product.p_id} | AV Qty: ${product.as_available_qty} | <span class="text-primary">Price: ${priceText}</span></small>
+                                <small>Barcode: ${product.p_isbn} | Code: ${product.p_id} | AV Qty: ${product.as_available_qty ? product.as_available_qty : '<span class="text-danger">Out of Stock</span>'} | <span class="text-primary">Price: ${priceText}</span></small>
                             </div>
                             ${addButton}
                         </div>`;
