@@ -401,6 +401,8 @@ class StockModel extends Model
         return "{$prefix}-{$date}-{$unique}";
     }
 
+
+
     public function generateReturnedInvoiceNo()
     {
         $prefix = 'RINV';
@@ -479,6 +481,31 @@ class StockModel extends Model
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'returned_invoices.ri_mw_id')
             ->join('invoices', 'invoices.in_id', '=', 'returned_invoices.ri_in_id')
             ->where('returned_invoices.ri_id', $RI_ID)
+            ->first();
+
+        return $result;
+    }
+
+    public function get_returned_invoice_data_by_invoice_no($RI_INVOICE)
+    {
+        $result = DB::table('returned_invoices')
+            ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'returned_invoices.ri_mw_id')
+            ->join('invoices', 'invoices.in_id', '=', 'returned_invoices.ri_in_id')
+            ->where('returned_invoices.ri_invoice_no', $RI_INVOICE)
+            ->where('returned_invoices.ri_status', 1)
+            ->first();
+
+        return $result;
+    }
+
+    public function get_returned_invoice_data_by_invoice_no_with_status($RI_INVOICE, $CLAIM)
+    {
+        $result = DB::table('returned_invoices')
+            ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'returned_invoices.ri_mw_id')
+            ->join('invoices', 'invoices.in_id', '=', 'returned_invoices.ri_in_id')
+            ->where('returned_invoices.ri_invoice_no', $RI_INVOICE)
+            ->where('returned_invoices.ri_claim_status', $CLAIM)
+            ->where('returned_invoices.ri_status', 1)
             ->first();
 
         return $result;
@@ -617,6 +644,30 @@ class StockModel extends Model
             ->where('products.p_id', $P_ID)
             ->where('master_warehouses.mw_id', $MW_ID)
             ->orderBy('available_stock.as_inserted_date', 'ASC')
+            ->select('*')
+            ->get();
+
+        return $result;
+    }
+
+    public function get_returned_invoice_by_in_no($INVOICE_ID)
+    {
+        $result = DB::table('returned_invoices')
+            ->join(
+                'returned_invoice_items',
+                'returned_invoice_items.rii_ri_id',
+                '=',
+                'returned_invoices.ri_id'
+            )
+            ->join(
+                'products',
+                'products.p_id',
+                '=',
+                'returned_invoice_items.rii_p_id'
+            )
+            ->where('returned_invoices.ri_in_id', $INVOICE_ID)
+            ->where('returned_invoices.ri_status', 1)
+            ->where('returned_invoice_items.rii_status', 1)
             ->select('*')
             ->get();
 

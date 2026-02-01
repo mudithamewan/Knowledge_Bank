@@ -326,6 +326,7 @@ class StockController extends Controller
         $BALANCE_AMOUNT = trim($request->input('BALANCE_AMOUNT'));
         $CUS_ID = trim($request->input('CUS_ID'));
         $IS_CORPARATE = trim($request->input('IS_CORPARATE'));
+        $RI_ID = trim($request->input('RI_ID'));
 
         if (empty($ITEMS)) {
             return json_encode(array('error' => 'Items not found!'));
@@ -463,8 +464,19 @@ class StockController extends Controller
                 }
             }
 
-            $CommonModel->update_work_log(session('USER_ID'), 'Stock In saved successfully. Stock Out ID:' . $STOCK_OUT_ID);
+            $RETURNED_INVOICE = $StockModel->get_returned_invoice_data_by_id($RI_ID);
+            if ($RETURNED_INVOICE == true) {
+                $update_data = array(
+                    'ri_claim_status' => 1,
+                    'ri_claim_date' => date('Y-m-d H:i:s'),
+                    'ri_claim_by' => session('USER_ID'),
+                );
+                DB::table('returned_invoices')
+                    ->where('ri_id', $RI_ID)
+                    ->update($update_data);
+            }
 
+            $CommonModel->update_work_log(session('USER_ID'), 'Stock In saved successfully. Stock Out ID:' . $STOCK_OUT_ID);
 
             DB::commit();
             return json_encode(array('success' => 'Stock In saved successfully.', 'in_id' => $IN_ID));
@@ -645,6 +657,8 @@ class StockController extends Controller
         $INVOICE_DATA = $StockModel->get_invoice_data_by_id($INVOICE_ID);
         $INVOICE_ITEMS_DATA = $StockModel->get_invoice_items_by_id($INVOICE_ID);
 
+        $RETURNED_INVOICE = $StockModel->get_returned_invoice_by_in_no($INVOICE_ID);
+
         if ($INVOICE_DATA->in_is_corparate == 1) {
             $CUSTOMER_DETAILS = $UserModel->get_organization_data($INVOICE_DATA->in_customer_id);
         } else if (!empty($INVOICE_DATA->in_customer_id)) {
@@ -658,6 +672,7 @@ class StockController extends Controller
             'INVOICE_DATA' => $INVOICE_DATA,
             'INVOICE_ITEMS_DATA' => $INVOICE_ITEMS_DATA,
             'CUSTOMER_DETAILS' => $CUSTOMER_DETAILS,
+            'RETURNED_INVOICE' => $RETURNED_INVOICE,
         ]);
         return json_encode(array('result' => $view));
     }
@@ -712,7 +727,6 @@ class StockController extends Controller
         } else {
             $CUSTOMER_DETAILS = [];
         }
-
 
         $pdf = Pdf::loadView('POS.Invoice.VAT_Invoice_View', [
             'INVOICE_DATA' => $INVOICE_DATA,
