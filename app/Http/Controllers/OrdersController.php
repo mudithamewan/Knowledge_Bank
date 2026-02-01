@@ -623,6 +623,12 @@ class OrdersController extends Controller
         }
         $IP = trim($ip);
 
+        // return view('Orders.Order_Form', [
+        //     'ORDER' => $ORDER,
+        //     'FULL_ARR' => $FULL_ARR,
+        //     'IP' => $IP,
+        // ]);
+
         $pdf = Pdf::loadView('Orders.Order_Form', [
             'ORDER' => $ORDER,
             'FULL_ARR' => $FULL_ARR,

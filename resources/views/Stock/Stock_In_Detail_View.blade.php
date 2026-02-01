@@ -2,6 +2,11 @@
     <div class="col-xl-6">
         <table class="table table-sm">
             <tr>
+                <th>GRN</th>
+                <th><i class="bx bx-right-arrow-alt font-size-16 text-primary align-middle ms-2"></i></th>
+                <td>{{$STOCK_IN_DETAILS->sil_grn}}</td>
+            </tr>
+            <tr>
                 <th>WAREHOUSE</th>
                 <th><i class="bx bx-right-arrow-alt font-size-16 text-primary align-middle ms-2"></i></th>
                 <td>{{$STOCK_IN_DETAILS->mw_name}}</td>

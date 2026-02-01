@@ -25,13 +25,6 @@
             left: 0;
             right: 0;
             height: 100px;
-            text-align: left;
-        }
-
-        .header-title {
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
         }
 
         footer {
@@ -41,9 +34,7 @@
             right: 0;
             height: 80px;
             border-top: 1px solid #000;
-            text-align: center;
-            font-size: 11px;
-            line-height: 1.4;
+            font-size: 10px;
         }
 
         footer .page:after {
@@ -54,48 +45,35 @@
             content: counter(pages);
         }
 
-        main {
-            margin-top: 10px;
+        .section-title {
+            font-weight: bold;
+            margin-top: 18px;
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-left: 3px solid #282460;
         }
 
-        .tbl table {
+        table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
         }
 
-        .tbl th,
-        .tbl td {
-            text-align: left;
-        }
-
-        .tbl th {
+        th {
             font-weight: bold;
             color: #282460;
         }
 
-        .section-title {
-            font-weight: bold;
-            margin-top: 17px;
-            background-color: #f0f0f0;
+        .tbl th,
+        .tbl td {
             padding: 5px;
-            border-left: 2px solid #282460;
-        }
-
-        .totals {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-
-        .totals p {
-            margin: 2px 0;
+            border-bottom: 1px solid #ddd;
         }
     </style>
 </head>
 
 <body>
 
-    <!-- Header -->
+    {{-- ================= HEADER ================= --}}
     <header>
         <table width="100%" style="border-bottom:1px solid black;">
             <tr>
@@ -116,7 +94,7 @@
         </table>
     </header>
 
-    <!-- Footer -->
+    {{-- ================= FOOTER ================= --}}
     <footer>
         <table width="100%">
             <tr>
@@ -130,8 +108,10 @@
         </table>
     </footer>
 
-    <!-- Main -->
+    {{-- ================= MAIN ================= --}}
     <main>
+
+        {{-- Order Header --}}
         <table width="100%">
             <tr style="background-color: #282460;">
                 <th style="text-align: center; font-size: 15px; color:white" colspan="7">ORDER FORM</th>
@@ -157,79 +137,67 @@
         </table>
 
         @php
-        $currentGrade = null;
         $total_qty = 0;
         $total_amount = 0;
         @endphp
 
+        {{-- ================= ITEMS ================= --}}
         @foreach($FULL_ARR as $ARR)
 
         <div style="border-bottom:1px solid #f69323; margin-top:20px; padding-bottom:5px; "> {{$ARR['WAREHOUSE']->mw_name}} - {{$ARR['WAREHOUSE']->mw_address}} </div>
 
-        @foreach($ARR['ORDER_ITEM'] as $ITEM)
-
         @php
-        $total_qty = $total_qty + $ITEM->os_qty;
-        $total_amount = $total_amount + ($ITEM->os_selling_amount * $ITEM->os_qty);
+        $groupedItems = collect($ARR['ORDER_ITEM'])->groupBy('grades');
         @endphp
 
+        @foreach($groupedItems as $grade => $items)
 
-        {{-- new grade block --}}
-        @if($currentGrade !== $ITEM->grades)
-        {{-- close previous --}}
-        @if(!is_null($currentGrade))
-        </tbody>
-        </table>
-        </div>
-        @endif
+        <div class="section-title">{{ strtoupper($grade) }}</div>
 
-        @php $currentGrade = $ITEM->grades; @endphp
-        <div class="section-title">{{ strtoupper($currentGrade) }}</div>
         <div class="tbl">
             <table>
                 <thead>
-                    <tr style="background-color: #cac8e3;">
-                        <th width="40%" style="padding-left: 5px;">Product</th>
-                        <th width="14%" style="padding-left: 5px;">ISBN</th>
-                        <th width="13.5%" style="padding-left: 5px; text-align: center;">Qty</th>
-                        <th width="13.5%" style="padding-left: 5px; text-align: center;">Rate</th>
-                        <th width="13.5%" style="padding-left: 5px; text-align: center;">Total</th>
-                        <th width="13.5%" style="padding-left: 5px; text-align: center;">Remark</th>
+                    <tr style="background:#cac8e3;">
+                        <th width="40%">Product</th>
+                        <th width="14%">ISBN</th>
+                        <th width="13.5%" style="text-align:center;">Qty</th>
+                        <th width="13.5%" style="text-align:center;">Rate</th>
+                        <th width="13.5%" style="text-align:center;">Total</th>
+                        <th width="13.5%" style="text-align:center;">Remark</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @endif
 
-                    {{-- alternate row color --}}
+                    @foreach($items as $ITEM)
+                    @if($ITEM->os_qty > 0)
+
                     @php
-                    $row_color = $loop->even ? '#f8f9fa' : '#ffffff';
+                    $total_qty += $ITEM->os_qty;
+                    $lineTotal = $ITEM->os_qty * $ITEM->os_selling_amount;
+                    $total_amount += $lineTotal;
                     @endphp
 
-                    @if($ITEM->os_qty > 0)
-                    <tr style="background-color:<?= $row_color ?>;">
+                    <tr>
                         <td>{{ strtoupper($ITEM->p_name) }}</td>
                         <td>{{ $ITEM->p_isbn }}</td>
-                        <td style="text-align: center;">{{ $ITEM->os_qty }}</td>
-                        <td style="text-align: right;">{{ number_format($ITEM->os_selling_amount, 2) }}</td>
-                        <td style="text-align: right;">{{ number_format($ITEM->os_selling_amount * $ITEM->os_qty, 2) }}</td>
+                        <td style="text-align:center;">{{ $ITEM->os_qty }}</td>
+                        <td style="text-align:right;">{{ number_format($ITEM->os_selling_amount, 2) }}</td>
+                        <td style="text-align:right;">{{ number_format($lineTotal, 2) }}</td>
                         <td style="text-align: right;">__________</td>
                     </tr>
-                    @endif
 
-                    {{-- close last table --}}
-                    @if($loop->last)
+                    @endif
+                    @endforeach
+
                 </tbody>
             </table>
         </div>
-        @endif
-        @endforeach
 
         @endforeach
 
+        @endforeach
 
-
-
-
+        {{-- ================= TOTALS ================= --}}
         <table width="100%" style="margin-top:30px">
             <tr>
                 <td width="50%"></td>

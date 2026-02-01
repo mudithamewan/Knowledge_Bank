@@ -302,6 +302,7 @@ class OrdersModel extends Model
             })
             ->where('orders.or_mw_id', $MW_ID)
             ->where('orders.or_status', 1)
+            ->where('orders.or_os_id', 4)
             ->groupBy('orders.or_id')
             ->having(DB::raw('COUNT(order_items.ori_id)'), '!=', 0)
             ->orderBy('orders.or_inserted_date', 'desc')
