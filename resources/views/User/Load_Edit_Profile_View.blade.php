@@ -69,7 +69,7 @@
           </div>
 
           <div class="col-xl-12 mt-2">
-              <label for="">ACCESS WAREHOUSES <span class="text-danger">*</span></label>
+              <label for="">ACCESS STOCK LOCATIONS <span class="text-danger">*</span></label>
               <div id="selectMenus">
                   <select class="select2 form-select select2-multiple mt-2" multiple="multiple" id="WAREHOUSES" data-placeholder="Choose ..." style="width:100%" name="WAREHOUSES[]">
                       @foreach($WAREHOUSES as $DATA)
