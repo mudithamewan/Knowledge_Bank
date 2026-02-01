@@ -135,7 +135,7 @@
 
                                     <hr>
 
-                                    <div class="mb-2"><b>WAREHOUSES</b></div>
+                                    <div class="mb-2"><b>STOCK LOCATIONS</b></div>
 
                                     @foreach($WAREHOUSES as $WAREHOUSE)
                                     <span class="badge badge-pill badge-soft-secondary font-size-12 me-1">{{$WAREHOUSE->mw_name}}</span>
