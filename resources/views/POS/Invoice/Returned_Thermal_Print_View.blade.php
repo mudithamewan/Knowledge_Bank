@@ -59,6 +59,7 @@
     <table>
         <tr>
             <td width="60%">
+                <div style="font-size: 7px">Invoice No: {{$RETURNED_INVOICE_DATA->ri_invoice_no}}</div>
                 <div style="font-size: 7px">Retruned Invoice No: {{$INVOICE_DATA->in_invoice_no}}</div>
                 <div style="font-size: 7px">Date: {{$RETURNED_INVOICE_DATA->in_inserted_date}}</div>
             </td>
@@ -66,6 +67,26 @@
     </table>
 
 
+    <table>
+        <thead style="border-top: 0.4px dashed #000; border-bottom: 0.4px dashed #000; ">
+            <tr>
+                <th class="bold" style="font-size: 7px; text-align:left" width="40%">Returned Item</td>
+                <th class="bold" style="text-align:right; font-size: 7px; text-align:center" width="10%">Qty</td>
+                <th class="bold" style="text-align:right; font-size: 7px; text-align:center" width="20%">Price</td>
+                <th class="bold" style="text-align:right; font-size: 7px" width="20%">Total</td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($RETURNED_INVOICE_ITEMS_DATA as $index => $data)
+            <tr>
+                <td style="font-size: 7px; <?= $index == 0 ? 'padding-top:2px;' : '' ?>">{{ strtoupper($data->p_name) }}</td>
+                <td style="text-align:right; font-size: 7px; text-align:center; <?= $index == 0 ? 'padding-top:2px;' : '' ?>">{{ $data->rii_qty }}</td>
+                <td style="text-align:right; font-size: 7px; <?= $index == 0 ? 'padding-top:2px;' : '' ?>">{{ number_format(($data->rii_selling_amount),2) }}</td>
+                <td style=" text-align:right; font-size: 7px; <?= $index == 0 ? 'padding-top:2px;' : '' ?>">{{ number_format($data->rii_selling_amount *  $data->rii_qty, 2) }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
 
 
     <table>
@@ -82,9 +103,9 @@
     <hr>
 
     <div class="center" style="margin-top:6px; text-align:center;">
-        {!! DNS1D::getBarcodeHTML(("RETURN_INVOICE_".$RETURNED_INVOICE_DATA->ri_id), 'C128', 1, 25) !!}
+        {!! DNS1D::getBarcodeHTML(($RETURNED_INVOICE_DATA->ri_invoice_no), 'C128', 1, 25) !!}
         <div style="font-size:7px; margin-top:2px;">
-            {{$RETURNED_INVOICE_DATA->ri_id}}
+            {{$RETURNED_INVOICE_DATA->ri_invoice_no}}
         </div>
     </div>
 </body>

@@ -43,9 +43,19 @@ class POSController extends Controller
         $q = $request->get('q');
         $MW_ID = $request->get('mw_id');
 
-        $PRODUCTS = $StockModel->search_available_products($q, $MW_ID);
-
-        return response()->json($PRODUCTS);
+        $RETURNED_INVOICE_DATA = $StockModel->get_returned_invoice_data_by_invoice_no_with_status($q, 0);
+        if ($RETURNED_INVOICE_DATA == true) {
+            return response()->json([
+                'type' => 'returned_invoice',
+                'data' => $RETURNED_INVOICE_DATA
+            ]);
+        } else {
+            $PRODUCTS = $StockModel->search_available_products($q, $MW_ID);
+            return response()->json([
+                'type' => 'products',
+                'data' => $PRODUCTS
+            ]);
+        }
     }
 
     public function load_diffrent_price_view(Request $request)
@@ -182,7 +192,7 @@ class POSController extends Controller
         $ORDERS = $OrdersModel->get_collected_orders_by_customer_id($CUS_ID, $MW_ID);
         $view = null;
         if (count($ORDERS) > 0) {
-            $view = (string)view('POS/Order_View', ['ORDERS' => $ORDERS]);
+            $view = (string)view('POS/Order_View', ['ORDERS' => $ORDERS, 'customer_id' => $CUSTOMER_DETAILS->o_id]);
         }
 
         return json_encode(array('have_customer' => true, 'customer_id' => $CUSTOMER_DETAILS->o_id, 'customer_name' => $CUSTOMER_DETAILS->o_business_name, 'customer_title' => $CUSTOMER_DETAILS->o_br_number, 'order_view' => $view));
@@ -725,11 +735,13 @@ class POSController extends Controller
                     'ri_status' => 1,
                     'ri_inserted_date' => date('Y-m-d H:i:s'),
                     'ri_inserted_by' => session('USER_ID'),
+                    'ri_invoice_no' => $StockModel->generateReturnedInvoiceNo(),
                     'ri_in_id' => $INVOICE_ID,
                     'ri_amount' => $TOTAL_PU_AMT,
                     'ri_is_returned' => $full_return,
                     'ri_is_partial_returned' => $partial_return,
                     'ri_mw_id' => $MW_ID,
+                    'ri_claim_status' => 0,
                 );
                 $RI_ID = DB::table('returned_invoices')->insertGetId($data3);
 
@@ -768,11 +780,42 @@ class POSController extends Controller
     public function load_order_to_pos(Request $request)
     {
         $OrdersModel = new OrdersModel();
+        $StockModel = new StockModel();
 
         $OR_ID = trim($request->input('or_id'));
+        $C_ID = trim($request->input('customer_id'));
 
         $ORDER = $OrdersModel->get_order_details($OR_ID);
-        $ORDER_ITEMS = $OrdersModel->get_order_item_details($OR_ID);
+        $ORDER_ITEMS = $OrdersModel->get_order_items($OR_ID, $C_ID);
+
+        $final_array = array();
+        foreach ($ORDER_ITEMS as $item) {
+            $av_products = $StockModel->get_av_stocks($item->p_id, $ORDER->mw_id);
+            $req_qty = $item->ori_qty;
+            foreach ($av_products as $av_product) {
+                if ($req_qty <= $av_product->as_available_qty) {
+                    array_push($final_array, [
+                        'id' => $av_product->as_id,
+                        'as_selling_price' => $av_product->as_selling_price,
+                        'as_available_qty' => $item->ori_qty,
+                        'name' => $av_product->p_name,
+                        'discount' => 0,
+                    ]);
+                    break;
+                } else {
+                    array_push($final_array, [
+                        'id' => $av_product->as_id,
+                        'as_selling_price' => $av_product->as_selling_price,
+                        'as_available_qty' => $av_product->as_available_qty,
+                        'name' => $av_product->p_name,
+                        'discount' => 0,
+                    ]);
+                    $req_qty = $req_qty - $av_product->as_available_qty;
+                }
+            }
+        }
+
+        return json_encode(array('success' => "Stock has been loaded", 'ORDER_ITEMS' => $final_array, 'ORDER' => $ORDER));
     }
 
     public function PrintReturnInvoice($RI_ID)
@@ -786,7 +829,6 @@ class POSController extends Controller
 
         $INVOICE_DATA = $StockModel->get_invoice_data_by_id($RETURNED_INVOICE_DATA->ri_in_id);
         $INVOICE_ITEMS_DATA = $StockModel->get_invoice_items_by_id($RETURNED_INVOICE_DATA->ri_in_id);
-
 
         $pdf = Pdf::loadView('POS.Invoice.Returned_Thermal_Print_View', [
             'RETURNED_INVOICE_DATA' => $RETURNED_INVOICE_DATA,

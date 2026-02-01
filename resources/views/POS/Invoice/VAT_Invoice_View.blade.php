@@ -127,62 +127,28 @@
 
     <table width="100%">
         <tr>
-            <td><b>Total Amount in words:</b>
+            <td>
+                <b>Total Amount in words:</b>
                 @php
                 function numberToRupees($number)
                 {
                 $ones = [
-                '', 'one', 'two', 'three', 'four', 'five',
-                'six', 'seven', 'eight', 'nine', 'ten',
-                'eleven', 'twelve', 'thirteen', 'fourteen',
-                'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
+                0 => 'zero', 1 => 'one', 2 => 'two', 3 => 'three', 4 => 'four',
+                5 => 'five', 6 => 'six', 7 => 'seven', 8 => 'eight', 9 => 'nine',
+                10 => 'ten', 11 => 'eleven', 12 => 'twelve', 13 => 'thirteen',
+                14 => 'fourteen', 15 => 'fifteen', 16 => 'sixteen',
+                17 => 'seventeen', 18 => 'eighteen', 19 => 'nineteen'
                 ];
 
                 $tens = [
-                '', '', 'twenty', 'thirty', 'forty',
-                'fifty', 'sixty', 'seventy', 'eighty', 'ninety'
+                2 => 'twenty', 3 => 'thirty', 4 => 'forty',
+                5 => 'fifty', 6 => 'sixty', 7 => 'seventy',
+                8 => 'eighty', 9 => 'ninety'
                 ];
 
                 $num = (int) floor($number);
 
-                if ($num === 0) {
-                return 'Zero rupees only';
-                }
-
-                $words = '';
-
-                // Thousands
-                if ($num >= 1000) {
-                $words .= $ones[intdiv($num, 1000)] . ' thousand ';
-                $num %= 1000;
-                }
-
-                // Hundreds
-                if ($num >= 100) {
-                $words .= $ones[intdiv($num, 100)] . ' hundred ';
-                $num %= 100;
-                }
-
-                // Tens
-                if ($num >= 20) {
-                $words .= $tens[intdiv($num, 10)] . ' ';
-                $num %= 10;
-                }
-
-                // Ones
-                if ($num > 0) {
-                $words .= $ones[$num] . ' ';
-                }
-
-                return ucfirst(trim($words)) . ' rupees only';
-                }
-                @endphp
-
-                {{ numberToRupees($INVOICE_DATA->in_total_payable) }}
-
-
-            </td>
-        </tr>
+                if ($num < 20) { return ucfirst($ones[$num]) . ' rupees only' ; } if ($num < 100) { return ucfirst( $tens[intdiv($num, 10)] . ($num % 10 ? ' ' . $ones[$num % 10] : '' ) ) . ' rupees only' ; } if ($num < 1000) { return ucfirst( $ones[intdiv($num, 100)] . ' hundred' . ($num % 100 ? ' ' . strtolower(numberToRupees($num % 100)) : '' ) ); } if ($num < 1000000) { return ucfirst( numberToRupees(intdiv($num, 1000)) . ' thousand' . ($num % 1000 ? ' ' . strtolower(numberToRupees($num % 1000)) : '' ) ); } return ucfirst(numberToRupees($num)); } @endphp {{ numberToRupees($INVOICE_DATA->in_total_payable) }} </tr>
         <tr>
             <td><b>Mode of Payment:</b> {{$INVOICE_DATA->mpt_name}}</td>
         </tr>

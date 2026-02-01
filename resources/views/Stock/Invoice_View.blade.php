@@ -234,10 +234,13 @@
         </div>
 
         <hr>
-        <button type="button" class="btn btn-success waves-effect btn-label waves-light w-lg" onclick="loadPrintInvoice2(`{{url('/')}}/PrintInvoice/{{urlencode(base64_encode($INVOICE_DATA->in_id))}}`)"><i class="bx bx-printer label-icon"></i> PRINT</button>
+        <button type="button" class="btn btn-success waves-effect btn-label waves-light w-lg" onclick="loadPrintInvoice(`{{url('/')}}/PrintInvoice/{{urlencode(base64_encode($INVOICE_DATA->in_id))}}`)"><i class="bx bx-printer label-icon"></i> PRINT</button>
         <a href="{{url('/')}}/Normal_Invoice/{{urlencode(base64_encode($INVOICE_DATA->in_id))}}" class="btn btn-success waves-effect btn-label waves-light w-lg"><i class="mdi mdi-download label-icon"></i> INVOICE</a>
         <a href="{{url('/')}}/VAT_Invoice/{{urlencode(base64_encode($INVOICE_DATA->in_id))}}" class="btn btn-success waves-effect btn-label waves-light w-lg"><i class="bx bx-receipt label-icon"></i> VAT INVOICE</a>
 
+        @if(count($RETURNED_INVOICE) > 0)
+        <button type="button" class="btn btn-danger waves-effect btn-label waves-light w-lg" onclick="loadPrintInvoice(`{{url('/')}}/PrintReturnInvoice/{{urlencode(base64_encode($RETURNED_INVOICE[0]->ri_id))}}`)"><i class="bx bx-printer label-icon"></i> RETURNED INVOICE</button>
+        @endif
     </div>
 
 

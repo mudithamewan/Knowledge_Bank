@@ -268,6 +268,7 @@
                                                     <th style="text-align: right;" class="p-1" width="40%">
                                                         <span class="text-primary" id="returned_invoice_amount">0.00</span>
                                                         <input type="hidden" id="RETURNED_INVOICE_AMOUNT" value="0">
+                                                        <input type="hidden" id="RI_ID" value="">
                                                     </th>
                                                 </tr>
                                                 <tr>
@@ -690,9 +691,29 @@
                 $.get("{{ url('/product_search_in_pos') }}", {
                     q: query,
                     mw_id: $("#MW_ID").val()
-                }, function(data) {
+                }, function(response) {
+                    // 🔥 CASE 1: Returned invoice
+                    if (response.type === 'returned_invoice') {
+                        const data = response.data;
+
+                        ri_amount = data.ri_amount ? data.ri_amount.toFixed(2) : '0.00';
+
+                        $('#RI_ID').val(data.ri_id);
+                        $('#returned_invoice_amount').html(ri_amount);
+                        $('#RETURNED_INVOICE_AMOUNT').val(ri_amount);
+                        updateTotals();
+                        resetSearch(false);
+                        return;
+                    }
+
+                    // 🔥 CASE 2: Normal product list
+                    const data = response.data;
+
                     if (!data.length) {
-                        $("#productList").html('<div class="text-danger text-center py-3"><i class="bx bx-file-blank"></i> No products found</div>');
+                        $("#productList").html(
+                            '<div class="text-danger text-center py-3">' +
+                            '<i class="bx bx-file-blank"></i> No products found</div>'
+                        );
                         return;
                     }
 
@@ -706,17 +727,30 @@
                         const disabled = !product.as_available_qty ? "disabled" : "";
 
                         const addButton = hasManyPrices ?
-                            `<button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#different_prices_modal" onclick="load_diffrent_prices('${product.p_id}','${product.as_mw_id}')">Add</button>` :
-                            `<button class="btn btn-sm btn-success add-btn" data-id="${product.as_id}" data-as_selling_price="${price}" data-as_available_qty="${product.as_available_qty}" data-p_id="${product.p_id}" data-name="${product.p_name}" data-code="${product.p_isbn}" ${disabled}>Add</button>`;
+                            `<button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                data-bs-target="#different_prices_modal"
+                onclick="load_diffrent_prices('${product.p_id}','${product.as_mw_id}')">Add</button>` :
+                            `<button class="btn btn-sm btn-success add-btn"
+                data-id="${product.as_id}"
+                data-as_selling_price="${price}"
+                data-as_available_qty="${product.as_available_qty}"
+                data-p_id="${product.p_id}"
+                data-name="${product.p_name}"
+                data-code="${product.p_isbn}" ${disabled}>Add</button>`;
 
                         return `
-                        <div class="list-group-item d-flex justify-content-between align-items-center list-group-item-action">
-                            <div>
-                                <h6 class="mb-1">${product.p_name}</h6>
-                                <small>Barcode: ${product.p_isbn} | Code: ${product.p_id} | AV Qty: ${product.as_available_qty ? product.as_available_qty : '<span class="text-danger">Out of Stock</span>'} | <span class="text-primary">Price: ${priceText}</span></small>
-                            </div>
-                            ${addButton}
-                        </div>`;
+            <div class="list-group-item d-flex justify-content-between align-items-center list-group-item-action">
+                <div>
+                    <h6 class="mb-1">${product.p_name}</h6>
+                    <small>
+                        Barcode: ${product.p_isbn} |
+                        Code: ${product.p_id} |
+                        AV Qty: ${product.as_available_qty ? product.as_available_qty : '<span class="text-danger">Out of Stock</span>'} |
+                        <span class="text-primary">Price: ${priceText}</span>
+                    </small>
+                </div>
+                ${addButton}
+            </div>`;
                     }).join("");
 
                     $("#productList").html(html);
@@ -871,6 +905,7 @@
             const DISCOUNT_PERCENTAGE = $("#DISCOUNT_PERCENTAGE").val();
             const DISCOUNT_AMOUNT = $("#DISCOUNT_AMOUNT").val();
             const RETURNED_INVOICE_AMOUNT = $("#RETURNED_INVOICE_AMOUNT").val();
+            const RI_ID = $("#RI_ID").val();
             const GRAND_TOTAL = parseFloat($("#grandTotal").text()) || 0;
             const MPT_ID = $("input[name='MPT_ID']:checked").val();
             const CASH_PAID = parseFloat($("#CASH_PAID").val()) || 0;

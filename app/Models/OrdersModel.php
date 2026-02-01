@@ -310,4 +310,18 @@ class OrdersModel extends Model
 
         return $result;
     }
+
+    public function get_order_items($OR_ID, $C_ID)
+    {
+        $data = DB::table('orders')
+            ->join('order_items', 'order_items.ori_or_id', '=', 'orders.or_id')
+            ->join('products', 'products.p_id', '=', 'order_items.ori_p_id')
+            ->where('orders.or_id', $OR_ID)
+            ->where('order_items.ori_o_id', $C_ID)
+            ->where('order_items.ori_status', 1)
+            ->select('*')
+            ->get();
+
+        return $data;
+    }
 }
