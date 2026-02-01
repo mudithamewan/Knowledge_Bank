@@ -1,136 +1,216 @@
 <style>
-    .invoice_content * {
-        font-family: 'Poppins', sans-serif;
-        box-sizing: border-box;
-    }
-
-    .tbl table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-    }
-
-    .tbl table th,
-    .tbl table td {
-        border: 1px solid #ddd;
+    .invoice_table table,
+    td,
+    th {
+        border: 1px solid;
         padding: 5px;
-        text-align: left;
+        font-family: 'Poppins', sans-serif;
         font-size: 12px;
+    }
+
+    .invoice_table table {
+        border-collapse: collapse;
     }
 </style>
 
-<div class="invoice_content">
-    <table width="100%" style="border-bottom: 1px solid #292561; padding-bottom:5px;">
+
+<div class="invoice_table">
+    <table width="20%" style="margin: 0 auto; text-align: center;">
         <tr>
-            <td width="50%" style="vertical-align: top; text-align: left; font-size: 25px; color:#292561; font-weight:bold;">VAT INVOICE</td>
-            <td style="font-size: 12px; text-align:right">
-                <table width="100%">
+            <th>Tax Invoice</th>
+        </tr>
+    </table>
+
+    <table width="100%">
+        <tr>
+            <td width="50%"><b>Date of Invoice:</b> {{$INVOICE_DATA->in_inserted_date}}</td>
+            <td width="50%"><b>Tax Invoice No:</b> {{$INVOICE_DATA->in_invoice_no}}</td>
+        </tr>
+    </table>
+
+    <table width="100%">
+        <tr>
+            <td width="50%">
+                <table style="border: none; padding:0px;">
                     <tr>
-                        <td style="text-align: right; padding-right:5px;">
-                            <span style="font-size: 15px; color:#292561;"><strong>Knowledge Bank Publisher</strong></span><br>
-                            <span style="color:#383838;">
-                                VAT No: 102274292 - 7000<br>
-                                No 7A Sethsiri Place, Pannipitiya, Sri Lanka<br>
-                                Email: knowledgebank2013@gmail.com<br>
-                                Hot Line: 0712 100 111 / 075 5100 111
-                            </span>
+                        <td style="border: none;">
+                            <b>Supplier's TIN:</b> 102274292 - 7000 <br>
+                            <b>Supplier's Name:</b> Knowledge Bank Publisher <br>
+                            <b>Address:</b> No 7A Sethsiri Place, Pannipitiya, Sri Lanka <br>
+                            <b>Telephone No.:</b> 0712 100 111 / 075 5100 111 <br>
                         </td>
-                        <td width="15%">
-                            <img src="{{public_path('assets/company_logo_only.png')}}" alt="" width="100%">
-                        </td>
+                        <td style="border: none;" width="20%"><img src="{{public_path('assets/company_logo_only.png')}}" alt="" width="100%"></td>
                     </tr>
                 </table>
             </td>
-        </tr>
-    </table>
-
-    <table width="100%" style="margin-top: 15px;">
-        <tr>
-            <td style="vertical-align: top; font-size: 12px;" width="50%">
-                <div style="margin-bottom: 5px;"><span style="color:#292561"><b>DATE :</b></span> {{$INVOICE_DATA->in_inserted_date}}</div>
-                <div style="margin-bottom: 5px;"><span style="color:#292561"><b>INVOICE NO :</b></span> {{$INVOICE_DATA->in_invoice_no}}</div>
-                <div style="margin-bottom: 5px;"><span style="color:#292561"><b>PAYMENT MODE :</b></span> {{$INVOICE_DATA->mpt_name}}</div>
-            </td>
-            <td style="vertical-align: top; font-size: 12px; text-align:right" width="50%">
-
+            <td width="50%">
                 @if(!empty($CUSTOMER_DETAILS))
-                <div style="margin-bottom: 5px;"><span style="color:#292561"><b>BILLED TO :</b></span></div>
+
                 @if(isset($CUSTOMER_DETAILS->o_id))
-                {{$CUSTOMER_DETAILS->o_name}}, <br>
-                {{$CUSTOMER_DETAILS->o_address}} <br>
                 @if($CUSTOMER_DETAILS->o_is_vat_registered == 1)
-                <span style="color:#292561"><b>VAT REG NO :</b></span> {{$CUSTOMER_DETAILS->o_vat_registered_number}}
+                <b>Purchaser's TIN:</b> {{$INVOICE_DATA->o_vat_registered_number}} <br>
                 @endif
+                <b>Purchaser's Name:</b> {{$CUSTOMER_DETAILS->o_name}} <br>
+                <b>Address:</b> {{$CUSTOMER_DETAILS->o_address}} <br>
+                <b>Telephone No:</b> {{$CUSTOMER_DETAILS->o_contact}} <br>
+
                 @else
-                {{$CUSTOMER_DETAILS->c_title}} {{$CUSTOMER_DETAILS->c_name}} <br>
-                {{$CUSTOMER_DETAILS->c_contact}}
+
+                <b>Purchaser's Name:</b> {{$CUSTOMER_DETAILS->c_title}} {{$CUSTOMER_DETAILS->c_name}} <br>
+                <b>Address:</b> {{$CUSTOMER_DETAILS->c_address}} <br>
+                <b>Telephone No:</b> {{$CUSTOMER_DETAILS->c_contact}} <br>
+
                 @endif
                 @endif
             </td>
         </tr>
     </table>
-
-    <div class="tbl">
-        <table width="100%">
-            <tr style="font-size: 12px; background-color:#cac8e3; color:#292561">
-                <th>#</th>
-                <th>ITEM DESCRIPTION</th>
-                <th style="text-align: center;">UNIT PRICE (LKR)</th>
-                <th style="text-align: center;">QTY</th>
-                <th style="text-align: center;">PRICE (LKR)</th>
-                <th style="text-align: center;">DIS.%</th>
-                <th style="text-align: center;">TOTAL</th>
-            </tr>
-
-            @php
-            $RATE = $INVOICE_DATA->in_vat_rate / 100;
-            @endphp
-
-            @foreach($INVOICE_ITEMS_DATA as $index => $data)
-            <tr style="font-size: 12px;">
-                <td>{{$index+1}}</td>
-                <td>{{ strtoupper($data->p_name)}}</td>
-                <td style="text-align: right;">{{number_format($data->ini_selling_price - ($data->ini_selling_price*$RATE),2)}}</td>
-                <td style="text-align: center;">{{$data->ini_qty}}</td>
-                <td style="text-align: right;">{{number_format((($data->ini_selling_price - ($data->ini_selling_price*$RATE)) * $data->ini_qty),2)}}</td>
-                <td style="text-align: right;">{{$data->ini_discount_percentage}}</td>
-                <td style="text-align: right;">{{number_format((($data->ini_final_price - ($data->ini_final_price*$RATE)) * $data->ini_qty),2)}}</td>
-            </tr>
-            @endforeach
-        </table>
-    </div>
 
     <table width="100%">
-        <tr style="font-size: 12px;">
-            <td width="50%"></td>
-            <td>
-                <div class="tbl">
-                    <table width="100%">
-                        <tr>
-                            <th style="color:#292561">SUBTOTAL</th>
-                            <td style="text-align: right;">{{number_format($INVOICE_DATA->in_sub_total - ($data->in_sub_total*$RATE),2)}}</td>
-                        </tr>
-                        <tr>
-                            <th style="color:#292561">DISCOUNT (0%)</th>
-                            <td style="text-align: right;"><small>({{$INVOICE_DATA->in_discount_percentage}}%)</small> {{number_format($INVOICE_DATA->in_discount_amount,2)}}</td>
-                        </tr>
-                        @if($INVOICE_DATA->in_returned_amount > 0)
-                        <tr>
-                            <th style="color:#292561">RETURNED</th>
-                            <td style="text-align: right;">{{number_format($INVOICE_DATA->in_returned_amount,2)}}</td>
-                        </tr>
-                        @endif
-                        <tr>
-                            <th style="color:#292561">TOTAL PAYABLE</th>
-                            <td style="text-align: right;">{{number_format($INVOICE_DATA->in_total_payable - ($data->in_total_payable*$RATE),2)}}</td>
-                        </tr>
-                        <tr>
-                            <th style="color:#292561">VAT AMOUNT</th>
-                            <td style="text-align: right;">{{number_format($data->in_total_payable*$RATE,2)}}</td>
-                        </tr>
-                    </table>
-                </div>
+        <tr>
+            <td width="50%"><b>Date of Delivery:</b> {{$INVOICE_DATA->in_inserted_date}}</td>
+            <td width="50%"><b>Place of Supply:</b> {{$INVOICE_DATA->mw_address}}</td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <b>Additional Information If Any:</b>
             </td>
         </tr>
     </table>
+
+    <table width="100%">
+        <tr>
+            <th>Reference</th>
+            <th>Description of Goods or Services</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Amount Excluding VAT (Rs.)</th>
+        </tr>
+        @php
+        $RATE = $INVOICE_DATA->in_vat_rate / 100;
+        @endphp
+
+        @foreach($INVOICE_ITEMS_DATA as $index => $data)
+        <tr>
+            <td>{{strtoupper($data->p_isbn)}}</td>
+            <td>{{strtoupper($data->p_name)}}</td>
+            <td style="text-align: center;">{{strtoupper($data->ini_qty)}}</td>
+            <td style="text-align: right;">{{number_format((($data->ini_selling_price - ($data->ini_selling_price*$RATE)) * $data->ini_qty),2)}}</td>
+            <td style="text-align: right;">{{number_format((($data->ini_final_price - ($data->ini_final_price*$RATE)) * $data->ini_qty),2)}}</td>
+        </tr>
+        @endforeach
+    </table>
+
+    <table width="100%">
+        <tr>
+            <th style="text-align: left;">Total Value of Supply:</th>
+            <td style="text-align: right;">{{number_format($INVOICE_DATA->in_sub_total - ($data->in_sub_total*$RATE),2)}}</td>
+        </tr>
+        <tr>
+            <th style="text-align: left;">Discount {{$INVOICE_DATA->in_discount_percentage}}%:</th>
+            <td style="text-align: right;">{{number_format($INVOICE_DATA->in_discount_amount,2)}}</td>
+        </tr>
+        <tr>
+            <th style="text-align: left;">Gross Amount:</th>
+            <td style="text-align: right;">{{number_format(($INVOICE_DATA->in_sub_total - ($data->in_sub_total*$RATE)) - $INVOICE_DATA->in_discount_amount,2)}}</td>
+        </tr>
+        <tr>
+            <th style="text-align: left;">VAT Amount (Total Value of Supply @ {{$INVOICE_DATA->in_vat_rate}}%)</th>
+            <td style="text-align: right;">{{number_format(($data->in_total_payable + $INVOICE_DATA->in_discount_amount)*$RATE,2)}}</td>
+        </tr>
+        <tr>
+            <th style="text-align: left;">Total Amount including VAT (Net Amount):</th>
+            <td style="text-align: right;">{{number_format(($INVOICE_DATA->in_total_payable),2)}}</td>
+        </tr>
+    </table>
+
+
+    <table width="100%">
+        <tr>
+            <td><b>Total Amount in words:</b>
+                @php
+                function numberToRupees($number)
+                {
+                $ones = [
+                '', 'one', 'two', 'three', 'four', 'five',
+                'six', 'seven', 'eight', 'nine', 'ten',
+                'eleven', 'twelve', 'thirteen', 'fourteen',
+                'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
+                ];
+
+                $tens = [
+                '', '', 'twenty', 'thirty', 'forty',
+                'fifty', 'sixty', 'seventy', 'eighty', 'ninety'
+                ];
+
+                $num = (int) floor($number);
+
+                if ($num === 0) {
+                return 'Zero rupees only';
+                }
+
+                $words = '';
+
+                // Thousands
+                if ($num >= 1000) {
+                $words .= $ones[intdiv($num, 1000)] . ' thousand ';
+                $num %= 1000;
+                }
+
+                // Hundreds
+                if ($num >= 100) {
+                $words .= $ones[intdiv($num, 100)] . ' hundred ';
+                $num %= 100;
+                }
+
+                // Tens
+                if ($num >= 20) {
+                $words .= $tens[intdiv($num, 10)] . ' ';
+                $num %= 10;
+                }
+
+                // Ones
+                if ($num > 0) {
+                $words .= $ones[$num] . ' ';
+                }
+
+                return ucfirst(trim($words)) . ' rupees only';
+                }
+                @endphp
+
+                {{ numberToRupees($INVOICE_DATA->in_total_payable) }}
+
+
+            </td>
+        </tr>
+        <tr>
+            <td><b>Mode of Payment:</b> {{$INVOICE_DATA->mpt_name}}</td>
+        </tr>
+    </table>
+
+    <br><br><br>
+    <table style="border: none;" width="100%">
+        <tr>
+            <td style="text-align: center; border: none;" width="33.333333%">
+                _____________________________ <br>
+                Prepared By
+            </td>
+            <td style="text-align: center; border: none;" width="33.333333%">
+                _____________________________ <br>
+                Issued By
+            </td>
+            <td style="text-align: center; border: none;" width="33.333333%">
+                _____________________________ <br>
+                Received By
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" style="border: none;">
+                All cheques should be crossed and drawn in favour of Knowledge Bank Publisher <br>
+                Check whether the books you have received tally with the invoice if not, inform within 07 days. <br>
+                The goods sold cannot be returned.
+            </td>
+        </tr>
+    </table>
+
 </div>
