@@ -596,4 +596,30 @@ class StockModel extends Model
 
         return $result;
     }
+
+    public function get_av_stocks($P_ID, $MW_ID)
+    {
+        $result = DB::table('available_stock')
+            ->join(
+                'products',
+                'products.p_id',
+                '=',
+                'available_stock.as_p_id'
+            )
+            ->join(
+                'master_warehouses',
+                'master_warehouses.mw_id',
+                '=',
+                'available_stock.as_mw_id'
+            )
+            ->where('available_stock.as_status', 1)
+            ->where('available_stock.as_available_qty', '>', 0)
+            ->where('products.p_id', $P_ID)
+            ->where('master_warehouses.mw_id', $MW_ID)
+            ->orderBy('available_stock.as_inserted_date', 'ASC')
+            ->select('*')
+            ->get();
+
+        return $result;
+    }
 }

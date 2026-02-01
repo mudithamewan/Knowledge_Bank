@@ -182,7 +182,7 @@ class POSController extends Controller
         $ORDERS = $OrdersModel->get_collected_orders_by_customer_id($CUS_ID, $MW_ID);
         $view = null;
         if (count($ORDERS) > 0) {
-            $view = (string)view('POS/Order_View', ['ORDERS' => $ORDERS]);
+            $view = (string)view('POS/Order_View', ['ORDERS' => $ORDERS, 'customer_id' => $CUSTOMER_DETAILS->o_id]);
         }
 
         return json_encode(array('have_customer' => true, 'customer_id' => $CUSTOMER_DETAILS->o_id, 'customer_name' => $CUSTOMER_DETAILS->o_business_name, 'customer_title' => $CUSTOMER_DETAILS->o_br_number, 'order_view' => $view));
@@ -768,11 +768,42 @@ class POSController extends Controller
     public function load_order_to_pos(Request $request)
     {
         $OrdersModel = new OrdersModel();
+        $StockModel = new StockModel();
 
         $OR_ID = trim($request->input('or_id'));
+        $C_ID = trim($request->input('customer_id'));
 
         $ORDER = $OrdersModel->get_order_details($OR_ID);
-        $ORDER_ITEMS = $OrdersModel->get_order_item_details($OR_ID);
+        $ORDER_ITEMS = $OrdersModel->get_order_items($OR_ID, $C_ID);
+
+        $final_array = array();
+        foreach ($ORDER_ITEMS as $item) {
+            $av_products = $StockModel->get_av_stocks($item->p_id, $ORDER->mw_id);
+            $req_qty = $item->ori_qty;
+            foreach ($av_products as $av_product) {
+                if ($req_qty <= $av_product->as_available_qty) {
+                    array_push($final_array, [
+                        'id' => $av_product->as_id,
+                        'as_selling_price' => $av_product->as_selling_price,
+                        'as_available_qty' => $item->ori_qty,
+                        'name' => $av_product->p_name,
+                        'discount' => 0,
+                    ]);
+                    break;
+                } else {
+                    array_push($final_array, [
+                        'id' => $av_product->as_id,
+                        'as_selling_price' => $av_product->as_selling_price,
+                        'as_available_qty' => $av_product->as_available_qty,
+                        'name' => $av_product->p_name,
+                        'discount' => 0,
+                    ]);
+                    $req_qty = $req_qty - $av_product->as_available_qty;
+                }
+            }
+        }
+
+        return json_encode(array('success' => "Stock has been loaded", 'ORDER_ITEMS' => $final_array, 'ORDER' => $ORDER));
     }
 
     public function PrintReturnInvoice($RI_ID)

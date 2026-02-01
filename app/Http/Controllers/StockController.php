@@ -316,9 +316,9 @@ class StockController extends Controller
         $ITEMS = $request->input('items');
         $MW_ID = trim($request->input('MW_ID'));
         $REMARK = "";
-        $DISCOUNT_PERCENTAGE = trim($request->input('DISCOUNT_PERCENTAGE'));
-        $DISCOUNT_AMOUNT = trim($request->input('DISCOUNT_AMOUNT'));
-        $RETURNED_INVOICE_AMOUNT = trim($request->input('RETURNED_INVOICE_AMOUNT'));
+        $DISCOUNT_PERCENTAGE = empty(trim($request->input('DISCOUNT_PERCENTAGE'))) ? 0 : trim($request->input('DISCOUNT_PERCENTAGE'));
+        $DISCOUNT_AMOUNT = empty(trim($request->input('DISCOUNT_AMOUNT'))) ? 0 : trim($request->input('DISCOUNT_AMOUNT'));
+        $RETURNED_INVOICE_AMOUNT = empty(trim($request->input('RETURNED_INVOICE_AMOUNT'))) ? 0 : trim($request->input('RETURNED_INVOICE_AMOUNT'));
         $MPT_ID = trim($request->input('MPT_ID'));
         $CASH_PAID = trim($request->input('CASH_PAID'));
         $CARD_PAID = trim($request->input('CARD_PAID'));
@@ -338,6 +338,7 @@ class StockController extends Controller
         $TOTAL_QTY = 0;
         $TOTAL_DISCOUNT = 0;
         $SUB_TOTAL = 0;
+
 
         foreach ($ITEMS as $item) {
             $ID = $item['id'];
