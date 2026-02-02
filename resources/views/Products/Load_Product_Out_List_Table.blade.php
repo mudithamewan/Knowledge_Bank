@@ -68,6 +68,7 @@
                 <th style="white-space: nowrap;">UNIT SELLING AMOUNT <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                 <th style="white-space: nowrap;">FROM <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                 <th style="white-space: nowrap;">QTY <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
+                <th style="white-space: nowrap;">OUT TYPE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                 <th style="white-space: nowrap;">OUT DATE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                 <th style="white-space: nowrap;">OUT BY <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
             </tr>
@@ -134,6 +135,9 @@
                 render: renderNA
             }, {
                 data: 's_qty',
+                render: renderNA
+            }, {
+                data: 'sol_method',
                 render: renderNA
             }, {
                 data: 's_inserted_date',

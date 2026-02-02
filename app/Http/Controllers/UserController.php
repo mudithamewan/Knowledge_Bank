@@ -405,7 +405,7 @@ class UserController extends Controller
                     'suw_status' => 0,
                 );
                 DB::table('system_user_warehouses')
-                    ->where('suw_mw_id', $USER_ID)
+                    ->where('suw_su_id', $USER_ID)
                     ->where('suw_status', 1)
                     ->update($data5);
 
