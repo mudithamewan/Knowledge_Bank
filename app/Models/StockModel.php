@@ -351,6 +351,7 @@ class StockModel extends Model
             'sol_total_qty' => $TOTAL_QTY,
             'sol_total_discount' => $TOTAL_DISCOUNT,
             'sol_mw_id' => $MW_ID,
+            'sol_method' => 'POS',
         );
         $STOCK_OUT_ID = DB::table('stock_out_list')->insertGetId($data1);
 

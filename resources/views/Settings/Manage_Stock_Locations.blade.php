@@ -144,19 +144,8 @@
                     <form id="NEW_WAREHOUSE_CREATE_FORM">
                         @csrf
                         <div class="row">
-                            <div class="col-lg-6 mt-2">
-                                <label>NAME <span class="text-danger">*</span></label>
-                                <input type="text" name="NAME" id="NAME" class="form-control">
-                            </div>
-                            <div class="col-lg-6 mt-2">
-                                <label>CONTACT NUMBER</label>
-                                <input type="text" name="CONTACT_NUMBER" id="CONTACT_NUMBER" class="form-control">
-                            </div>
-                            <div class="col-lg-6 mt-2">
-                                <label>EMAIL</label>
-                                <input type="email" name="EMAIL" id="EMAIL" class="form-control">
-                            </div>
-                            <div class="col-lg-3 mt-2">
+
+                            <div class="col-lg-4 mt-2">
                                 <label>TYPE <span class="text-danger">*</span></label>
                                 <select name="TYPE" id="TYPE" class="form-select" onclick="load_items()">
                                     <option value="" disabled selected hidden>Choose ..</option>
@@ -165,14 +154,36 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-lg-3 mt-2" id="vehicle_no" style="display:none">
+                            <div class="col-lg-8 mt-2">
+                                <label>NAME <span class="text-danger">*</span></label>
+                                <input type="text" name="NAME" id="NAME" class="form-control">
+                            </div>
+                            <div class="col-lg-6 mt-2" id="contact_number_field">
+                                <label>CONTACT NUMBER</label>
+                                <input type="text" name="CONTACT_NUMBER" id="CONTACT_NUMBER" class="form-control">
+                            </div>
+                            <div class="col-lg-6 mt-2" id="email_field">
+                                <label>EMAIL</label>
+                                <input type="email" name="EMAIL" id="EMAIL" class="form-control">
+                            </div>
+                            <div class="col-lg-4 mt-2" id="vehicle_no" style="display: none;">
                                 <label>VEHICLE NO <span class="text-danger">*</span></label>
                                 <input type="text" name="VEHICLE_NO" id="VEHICLE_NO" class="form-control" maxlength="20">
                             </div>
-                            <div class="col-lg-12 mt-2">
+                            <div class="col-lg-8 mt-2" id="users_id" style="display: none;">
+                                <label>USER <span class="text-danger">*</span></label>
+                                <select name="USER_ID" id="USER_ID" class="form-select">
+                                    <option value="" disabled hidden selected>-- select --</option>
+                                    @foreach($USERS as $user)
+                                    <option value="{{$user->su_id}}">{{$user->su_name}} ({{$user->su_nic}})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-lg-12 mt-2" id="address_field">
                                 <label>ADDRESS <span class="text-danger">*</span></label>
                                 <textarea name="ADDRESS" id="ADDRESS" class="form-control" rows="4"></textarea>
                             </div>
+                            <div class="col-xl-12"></div>
                             <div class="col-lg-3 mt-3" id="NEW_WAREHOUSE_CREATE_FORM_BTN" style="margin-top:27px;">
                                 <button class="btn btn-primary w-100" type="submit">SAVE</button>
                             </div>
@@ -207,9 +218,17 @@
     <script>
         function load_items() {
             $('#vehicle_no').hide();
+            $('#users_id').hide();
+            $('#contact_number_field').show();
+            $('#email_field').show();
+            $('#address_field').show();
             var type = $('#TYPE').val();
             if (type == 3) {
                 $('#vehicle_no').show();
+                $('#users_id').show();
+                $('#contact_number_field').hide();
+                $('#email_field').hide();
+                $('#address_field').hide();
             }
         }
 

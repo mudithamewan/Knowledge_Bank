@@ -58,7 +58,9 @@ class OrdersController extends Controller
         $customer_count = 0;
         $qty_count = 0;
         foreach ($data['customers'] as $arr_item) {
-            $customer_count++;
+            if ($arr_item['customer_id'] != 0) {
+                $customer_count++;
+            }
 
             foreach ($arr_item['items'] as $item) {
                 $qty_count = $qty_count + $item['qty'];
@@ -439,6 +441,7 @@ class OrdersController extends Controller
                         'sol_total_qty' => $TOTAL_QTY,
                         'sol_total_discount' => 0,
                         'sol_mw_id' => $item->os_mw_id,
+                        'sol_method' => 'COLLECT',
                     );
                     $STOCK_OUT_ID = DB::table('stock_out_list')->insertGetId($data1);
                 }
