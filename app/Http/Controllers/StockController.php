@@ -329,6 +329,7 @@ class StockController extends Controller
         $IS_CORPARATE = trim($request->input('IS_CORPARATE'));
         $RI_ID = trim($request->input('RI_ID'));
         $OR_ID = trim($request->input('OR_ID'));
+        $MCP_ID = trim($request->input('MCP_ID'));
 
         if (empty($ITEMS)) {
             return json_encode(array('error' => 'Items not found!'));
@@ -393,6 +394,10 @@ class StockController extends Controller
             } else if ($SUB_TOTAL > $TOTAL_PAID_AMOUNT) {
                 return json_encode(array('error' => 'Insufficient payment. Total paid must match the payable amount.'));
             }
+        } else {
+            if ($ValidationModel->is_invalid_data($MCP_ID) || $MCP_ID == 0) {
+                return json_encode(array('error' => 'Please select credit period.'));
+            }
         }
 
 
@@ -421,6 +426,7 @@ class StockController extends Controller
                 'in_is_returned' => 0,
                 'in_mw_id' => $MW_ID,
                 'in_vat_rate' => config('constants.VAT_RATE'),
+                'in_mcp_id' => $MPT_ID == 5 ? $MCP_ID : null,
             );
             $IN_ID = DB::table('invoices')->insertGetId($data1);
 
