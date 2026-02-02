@@ -88,8 +88,8 @@
                     <tr>
                         <th style="white-space: nowrap;">RETURN INVOICE CODE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">INVOICE CODE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
-                        <th style="white-space: nowrap;">UPDATED DATE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
-                        <th style="white-space: nowrap;">UPDATED BY <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
+                        <th style="white-space: nowrap;">RETURNED DATE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
+                        <th style="white-space: nowrap;">RETURNED BY <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">AMOUNT <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">WAREHOUSE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">STATUS <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
@@ -221,7 +221,7 @@
                     data: 'ri_claim_status',
                     render: function(data, type, row) {
                         if (data == 1) {
-                            return `<span class="badge badge-pill badge-soft-success font-size-11">CLAIMD</span>`;
+                            return `<span class="badge badge-pill badge-soft-success font-size-11">CLAIMED</span>`;
                         } else {
                             return `<span class="badge badge-pill badge-soft-warning font-size-11">PENDING</span>`;
                         }

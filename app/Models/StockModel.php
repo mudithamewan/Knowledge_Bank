@@ -503,6 +503,7 @@ class StockModel extends Model
     {
         $result = DB::table('returned_invoices')
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'returned_invoices.ri_mw_id')
+            ->join('system_users', 'system_users.su_id', '=', 'returned_invoices.ri_inserted_by')
             ->join('invoices', 'invoices.in_id', '=', 'returned_invoices.ri_in_id')
             ->where('returned_invoices.ri_id', $RI_ID)
             ->first();
@@ -681,7 +682,7 @@ class StockModel extends Model
             ->join('returned_invoice_items', 'returned_invoice_items.rii_ri_id', '=', 'returned_invoices.ri_id')
             ->join('products', 'products.p_id', '=', 'returned_invoice_items.rii_p_id')
             ->join('system_users', 'system_users.su_id', '=', 'returned_invoices.ri_inserted_by')
-            ->where('returned_invoices.ri_in_id', $INVOICE_ID)
+            ->where('returned_invoices.ri_id', $INVOICE_ID)
             ->where('returned_invoices.ri_status', 1)
             ->where('returned_invoice_items.rii_status', 1)
             ->select('*')

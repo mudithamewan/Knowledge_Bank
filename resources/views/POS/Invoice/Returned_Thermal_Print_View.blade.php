@@ -53,15 +53,23 @@
     <div class="center bold" style="font-size: 12px;">Knowledge Bank Publisher</div>
     <div class="center" style="font-size: 7px">No 7A, Sethsiri Place, Pannipitiya</div>
     <div class="center" style="font-size: 6px;">Tel: 0712 100 111 / 075 5100 111</div>
+    <div class="center" style="font-size: 5px;">Outlet: {{trim($RETURNED_INVOICE_DATA->mw_name)}}</div>
     <hr>
 
 
     <table>
         <tr>
-            <td width="60%">
-                <div style="font-size: 7px">Invoice No: {{$RETURNED_INVOICE_DATA->ri_invoice_no}}</div>
-                <div style="font-size: 7px">Retruned Invoice No: {{$INVOICE_DATA->in_invoice_no}}</div>
+            <td style="text-align: center; padding-bottom:4px;">
+                <div style="font-size: 7px; font-weight:bold;">EXCHANGE INVOICE</div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+
+                <div style="font-size: 7px">Exchange Invoice No: {{$RETURNED_INVOICE_DATA->ri_invoice_no}}</div>
+                <div style="font-size: 7px">Returned Invoice No: {{$INVOICE_DATA->in_invoice_no}}</div>
                 <div style="font-size: 7px">Date: {{$RETURNED_INVOICE_DATA->in_inserted_date}}</div>
+                <div style="font-size: 7px">User: {{explode(' ', $RETURNED_INVOICE_DATA->su_name)[0]}}</div>
             </td>
         </tr>
     </table>
@@ -104,9 +112,6 @@
 
     <div class="center" style="margin-top:6px; text-align:center;">
         {!! DNS1D::getBarcodeHTML(($RETURNED_INVOICE_DATA->ri_invoice_no), 'C128', 1, 25) !!}
-        <div style="font-size:7px; margin-top:2px;">
-            {{$RETURNED_INVOICE_DATA->ri_invoice_no}}
-        </div>
     </div>
 </body>
 

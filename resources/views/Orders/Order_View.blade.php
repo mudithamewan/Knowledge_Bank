@@ -272,7 +272,7 @@
                                                 @endif
 
                                                 <tr>
-                                                    <td>{{$ITEM->p_isbn}}</td>
+                                                    <td>{{$ITEM->p_isbn}} {!!$ITEM->ori_complete == 1? '<span title="Delivered"><i class="bx bx-check text-success"></i></span>' : ''!!}</td>
                                                     <td>{{$ITEM->p_name}}</td>
                                                     <td>{{$ITEM->mc_name}}</td>
                                                     <td style="text-align:right;" width="10%">{{$ITEM->ori_in_qty}}</td>
@@ -387,7 +387,7 @@
                                                                     @php $color ='#fde4e4'; @endphp
                                                                     @endif
 
-                                                                    <div class="font-size-14 mb-0 p-2 ps-3" style="border-left: 3px solid <?= $color ?>; background-color:#f8f8fb">
+                                                                    <div class="font-size-14 mb-0 p-2 ps-3 mt-2" style="border-left: 3px solid <?= $color ?>; background-color:#f8f8fb">
                                                                         <footer class="blockquote-footer mt-0 mb-0 font-size-12">
                                                                             {{empty($APPROVAL->ora_remark)?'N/A':$APPROVAL->ora_remark }}
                                                                         </footer>
