@@ -214,8 +214,11 @@ class SettingsController extends Controller
         $SettingsModel = new SettingsModel();
 
         $STOCK_LOCATION_TYPES = $SettingsModel->get_stock_location_types();
+        $USERS = $SettingsModel->get_system_users();
+
         return view('Settings/Manage_Stock_Locations', [
-            'STOCK_LOCATION_TYPES' => $STOCK_LOCATION_TYPES
+            'STOCK_LOCATION_TYPES' => $STOCK_LOCATION_TYPES,
+            'USERS' => $USERS,
         ]);
     }
 
@@ -223,6 +226,7 @@ class SettingsController extends Controller
     {
         $ValidationModel = new ValidationModel();
         $CommonModel = new CommonModel();
+        $UserModel = new UserModel();
 
         $error = "";
         $NAME = trim($request->input('NAME'));
@@ -231,23 +235,29 @@ class SettingsController extends Controller
         $ADDRESS = trim($request->input('ADDRESS'));
         $TYPE = trim($request->input('TYPE'));
         $VEHICLE_NO = trim($request->input('VEHICLE_NO'));
+        $USER_ID = trim($request->input('USER_ID'));
 
         if ($ValidationModel->is_invalid_data($NAME)) {
             $error .= "- Name cannot be empty<br>";
         }
-        if ($ValidationModel->is_invalid_data($CONTACT_NUMBER)) {
-            // $error .= "- Contact number cannot be empty<br>";
-        } else if ($ValidationModel->is_invalid_sl_contact($CONTACT_NUMBER)) {
-            $error .= "- Invalid Contact number address!<br>";
-        }
-        if ($ValidationModel->is_invalid_data($ADDRESS)) {
-            $error .= "- Address cannot be empty<br>";
-        }
+
         if ($ValidationModel->is_invalid_data($TYPE)) {
             $error .= "- Type cannot be empty<br>";
         } else if ($TYPE == 3) {
             if ($ValidationModel->is_invalid_data($VEHICLE_NO)) {
                 $error .= "- Vehicle Number cannot be empty<br>";
+            }
+            if ($ValidationModel->is_invalid_data($USER_ID)) {
+                $error .= "- User cannot be empty<br>";
+            }
+        } else {
+            if ($ValidationModel->is_invalid_data($CONTACT_NUMBER)) {
+                // $error .= "- Contact number cannot be empty<br>";
+            } else if ($ValidationModel->is_invalid_sl_contact($CONTACT_NUMBER)) {
+                $error .= "- Invalid Contact number address!<br>";
+            }
+            if ($ValidationModel->is_invalid_data($ADDRESS)) {
+                $error .= "- Address cannot be empty<br>";
             }
         }
 
@@ -256,6 +266,13 @@ class SettingsController extends Controller
         } else {
             DB::beginTransaction();
             try {
+
+                if ($TYPE == 3) {
+                    $USER_INFO = $UserModel->get_user_data($USER_ID);
+                    $CONTACT_NUMBER = $USER_INFO->su_contact_number;
+                    $EMAIL = $USER_INFO->su_email;
+                    $ADDRESS = $USER_INFO->su_address_line_01 . " " . $USER_INFO->su_address_line_02 . " " . $USER_INFO->su_address_line_03;
+                }
 
                 $data1 = array(
                     'mw_status' => 1,
@@ -270,6 +287,17 @@ class SettingsController extends Controller
                     'mw_is_active' => 1,
                 );
                 $WAREHOUSE_ID = DB::table('master_warehouses')->insertGetId($data1);
+
+                if ($TYPE == 3) {
+                    $data3 = array(
+                        'suw_status' => 1,
+                        'suw_inserted_date' => date('Y-m-d H:i:s'),
+                        'suw_inserted_by' => session('USER_ID'),
+                        'suw_su_id' => $USER_ID,
+                        'suw_mw_id' => $WAREHOUSE_ID,
+                    );
+                    DB::table('system_user_warehouses')->insert($data3);
+                }
 
                 $CommonModel->update_work_log(session('USER_ID'), 'New Stock Location has been created. Stock Location ID:' . $WAREHOUSE_ID);
 
