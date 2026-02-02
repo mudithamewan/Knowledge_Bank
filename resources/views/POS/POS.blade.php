@@ -380,6 +380,18 @@
                                                         <input type="text" class="form-control text-end form-control-sm input-mask text-start" id="OTHER_AMOUNT" data-inputmask="'alias': 'numeric', 'groupSeparator': ',', 'digits': 2, 'digitsOptional': false, 'prefix': '', 'placeholder': '0'">
                                                     </th>
                                                 </tr>
+                                                <tr id="CREDIT_PERIOD_ROW" style="display: none;">
+                                                    <th style="text-align: right;" class="p-1">Credit Period</th>
+                                                    <th>:</th>
+                                                    <th style="text-align: right;" class="p-1" width="40%">
+                                                        <select name="MCP_ID" id="MCP_ID" class="form-select form-select-sm">
+                                                            <option value="" disabled hidden selected>-- select --</option>
+                                                            @foreach($CREDIT_PERIODS as $data)
+                                                            <option value="{{$data->mcp_id}}">{{$data->mcp_name}}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </th>
+                                                </tr>
                                                 <tr>
                                                     <th style="text-align: right;" class="p-1">Paid Amount</th>
                                                     <th>:</th>
@@ -511,7 +523,7 @@
 
             // reset search
             resetSearch(true);
-
+            fiill_total();
             // recalc payment totals safely
             updatePaymentTotals();
         }
@@ -586,11 +598,12 @@
             const grandTotal = parseFloat($("#grandTotal").text()) || 0;
             const MPT_ID = $("input[name='MPT_ID']:checked").val();
 
-            $("#CASH_AMOUNT_ROW, #CARD_AMOUNT_ROW, #OTHER_AMOUNT_ROW").hide();
+            $("#CASH_AMOUNT_ROW, #CARD_AMOUNT_ROW, #OTHER_AMOUNT_ROW, #CREDIT_PERIOD_ROW").hide();
 
             if (MPT_ID !== "1") $("#CASH_PAID").val("0");
             if (MPT_ID !== "2") $("#CARD_PAID").val("0");
             if (MPT_ID !== "4") $("#OTHER_AMOUNT").val("0");
+            if (MPT_ID !== "5") $("#OTHER_AMOUNT").val("0");
 
             if (MPT_ID === "1") {
                 $("#CASH_AMOUNT_ROW").show();
@@ -605,6 +618,7 @@
                 $("#OTHER_AMOUNT").val(grandTotal.toFixed(2));
             } else if (MPT_ID === "5") {
                 $("#OTHER_AMOUNT_ROW").show();
+                $("#CREDIT_PERIOD_ROW").show();
             }
 
             updatePaymentTotals();
@@ -858,7 +872,7 @@
 
         // ========================= COMMON EVENT LISTENERS ========================= //
         function initListeners() {
-            $(document).on("input", ".qty, .discount, #DISCOUNT_PERCENTAGE, #DISCOUNT_AMOUNT, #CASH_PAID, #CARD_PAID, #OTHER_AMOUNT", updateTotals);
+            $(document).on("input", ".qty, .discount, #DISCOUNT_PERCENTAGE, #DISCOUNT_AMOUNT, #CASH_PAID, #CARD_PAID, #OTHER_AMOUNT,#MCP_ID", updateTotals);
             $(document).on("change", "input[name='MPT_ID']", fiill_total);
         }
 
@@ -973,6 +987,7 @@
             const CASH_PAID = parseFloat($("#CASH_PAID").val()) || 0;
             const CARD_PAID = parseFloat($("#CARD_PAID").val()) || 0;
             const OTHER_PAID = parseFloat($("#OTHER_AMOUNT").val()) || 0;
+            const MCP_ID = parseFloat($("#MCP_ID").val()) || 0;
             const TOTAL_PAID_AMOUNT = CASH_PAID + CARD_PAID + OTHER_PAID;
 
             if (!MW_ID) {
@@ -1006,6 +1021,7 @@
                     TOTAL_PAID_AMOUNT,
                     RI_ID,
                     OR_ID,
+                    MCP_ID,
                 },
                 success: function(response) {
                     if (response.success) {

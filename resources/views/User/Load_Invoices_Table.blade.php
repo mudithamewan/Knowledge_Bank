@@ -73,6 +73,7 @@
                 <th style="white-space: nowrap;">TOTAL PAID AMOUNT <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                 <th style="white-space: nowrap;">BALANCE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                 <th style="white-space: nowrap;">PAYMENT MODE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
+                <th style="white-space: nowrap;">CREDIT PERIOD <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                 <th style="white-space: nowrap;">WAREHOUSE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                 <th style="white-space: nowrap;">ACTION</th>
             </tr>
@@ -256,6 +257,9 @@
                 }
             }, {
                 data: 'mpt_name',
+                render: renderNA
+            }, {
+                data: 'mcp_name',
                 render: renderNA
             }, {
                 data: 'mw_name',

@@ -16,6 +16,7 @@ class DashboardModel extends Model
     public function get_collection_data($IS_COUNT, $FROM_DATE = null, $TO_DATE = null, $MW_ID = null)
     {
         $summary = DB::table('invoices')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->where('in_status', 1)
             ->selectRaw('
                 SUM(in_total_payable) AS total_sale,

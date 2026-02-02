@@ -287,6 +287,7 @@ class UserModel extends Model
         $formattedToDate = date('Y-m-d', strtotime($TO_DATE . ' +1 days'));
 
         $data = DB::table('invoices')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->join('master_payment_types', 'master_payment_types.mpt_id', '=', 'invoices.in_mpt_id')
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'invoices.in_mw_id')
             ->join('system_users', 'system_users.su_id', '=', 'invoices.in_inserted_by')

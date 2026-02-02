@@ -29,10 +29,12 @@ class POSController extends Controller
 
         $WAREHOUSES = $StockModel->get_active_stock_locations();
         $PAYMENT_TYPES = $StockModel->get_payment_types();
+        $CREDIT_PERIODS = $StockModel->get_credit_periods();
 
         return view('POS/POS', [
             'WAREHOUSES' => $WAREHOUSES,
             'PAYMENT_TYPES' => $PAYMENT_TYPES,
+            'CREDIT_PERIODS' => $CREDIT_PERIODS,
         ]);
     }
 
@@ -797,7 +799,7 @@ class POSController extends Controller
                     array_push($final_array, [
                         'id' => $av_product->as_id,
                         'as_selling_price' => $av_product->as_selling_price,
-                        'as_available_qty' => $item->ori_qty,
+                        'as_available_qty' => $req_qty,
                         'name' => $av_product->p_name,
                         'discount' => 0,
                     ]);

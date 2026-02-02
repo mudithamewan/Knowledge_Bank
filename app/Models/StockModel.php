@@ -424,6 +424,15 @@ class StockModel extends Model
         return $warehouses;
     }
 
+    public function get_credit_periods()
+    {
+        $data = DB::table('master_credit_periods')
+            ->where('mcp_status', 1)
+            ->get();
+
+        return $data;
+    }
+
     public function get_customer_details_by_contact($CONTACT_NO)
     {
         $customers = DB::table('customers')
@@ -449,6 +458,7 @@ class StockModel extends Model
         $formattedToDate = date('Y-m-d', strtotime($TO_DATE . ' +1 days'));
 
         $query = DB::table('invoices')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->join('master_payment_types', 'master_payment_types.mpt_id', '=', 'invoices.in_mpt_id')
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'invoices.in_mw_id')
             ->join('system_users', 'system_users.su_id', '=', 'invoices.in_inserted_by')
@@ -472,6 +482,7 @@ class StockModel extends Model
         $query = DB::table('returned_invoices')
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'returned_invoices.ri_mw_id')
             ->join('invoices', 'invoices.in_id', '=', 'returned_invoices.ri_in_id')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->join('system_users', 'system_users.su_id', '=', 'returned_invoices.ri_inserted_by')
             ->where('returned_invoices.ri_status', 1)
             ->whereBetween('returned_invoices.ri_inserted_date', [$formattedFromDate, $formattedToDate]);
@@ -490,6 +501,7 @@ class StockModel extends Model
     public function get_invoice_data_by_id($INVOICE_ID)
     {
         $result = DB::table('invoices')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->join('master_payment_types', 'master_payment_types.mpt_id', '=', 'invoices.in_mpt_id')
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'invoices.in_mw_id')
             ->join('system_users', 'system_users.su_id', '=', 'invoices.in_inserted_by')
@@ -505,6 +517,7 @@ class StockModel extends Model
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'returned_invoices.ri_mw_id')
             ->join('system_users', 'system_users.su_id', '=', 'returned_invoices.ri_inserted_by')
             ->join('invoices', 'invoices.in_id', '=', 'returned_invoices.ri_in_id')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->where('returned_invoices.ri_id', $RI_ID)
             ->first();
 
@@ -516,6 +529,7 @@ class StockModel extends Model
         $result = DB::table('returned_invoices')
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'returned_invoices.ri_mw_id')
             ->join('invoices', 'invoices.in_id', '=', 'returned_invoices.ri_in_id')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->where('returned_invoices.ri_invoice_no', $RI_INVOICE)
             ->where('returned_invoices.ri_status', 1)
             ->first();
@@ -528,6 +542,7 @@ class StockModel extends Model
         $result = DB::table('returned_invoices')
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'returned_invoices.ri_mw_id')
             ->join('invoices', 'invoices.in_id', '=', 'returned_invoices.ri_in_id')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->where('returned_invoices.ri_invoice_no', $RI_INVOICE)
             ->where('returned_invoices.ri_claim_status', $CLAIM)
             ->where('returned_invoices.ri_status', 1)
@@ -551,6 +566,7 @@ class StockModel extends Model
     public function get_invoice_data_by_invoice_number($INVOICE_NUMBER)
     {
         $result = DB::table('invoices')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->join('master_payment_types', 'master_payment_types.mpt_id', '=', 'invoices.in_mpt_id')
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'invoices.in_mw_id')
             ->join('system_users', 'system_users.su_id', '=', 'invoices.in_inserted_by')
@@ -564,6 +580,7 @@ class StockModel extends Model
     {
         $result = DB::table('invoice_items')
             ->join('invoices', 'invoices.in_id', '=', 'invoice_items.ini_in_id')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->join('products', 'products.p_id', '=', 'invoice_items.ini_p_id')
             ->where('invoice_items.ini_status', 1)
             ->where('invoices.in_id', $INVOICE_ID)
@@ -595,6 +612,7 @@ class StockModel extends Model
     {
         $data = DB::table('invoices')
             ->select('*')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->join('system_users', 'system_users.su_id', '=', 'invoices.in_inserted_by')
             ->join('master_payment_types', 'master_payment_types.mpt_id', '=', 'invoices.in_mpt_id')
             ->join('customers', 'customers.c_id', '=', 'invoices.in_customer_id')
@@ -624,6 +642,7 @@ class StockModel extends Model
     {
         $data = DB::table('invoices')
             ->select('*')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->join('system_users', 'system_users.su_id', '=', 'invoices.in_inserted_by')
             ->join('master_payment_types', 'master_payment_types.mpt_id', '=', 'invoices.in_mpt_id')
             ->leftJoin('customers', 'customers.c_id', '=', 'invoices.in_customer_id')
@@ -679,6 +698,7 @@ class StockModel extends Model
     {
         $result = DB::table('returned_invoices')
             ->join('invoices', 'invoices.in_id', '=', 'returned_invoices.ri_in_id')
+            ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->join('returned_invoice_items', 'returned_invoice_items.rii_ri_id', '=', 'returned_invoices.ri_id')
             ->join('products', 'products.p_id', '=', 'returned_invoice_items.rii_p_id')
             ->join('system_users', 'system_users.su_id', '=', 'returned_invoices.ri_inserted_by')
