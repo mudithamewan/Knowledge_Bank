@@ -1,7 +1,6 @@
 @if(count($ORDERS) > 0)
 <div class="border-top mt-3">
     <p class="text-muted fw-medium mt-2">ORDERS</p>
-
     @foreach($ORDERS as $ORDER)
     <span id="order_button_{{$ORDER->or_id}}">
         <button type="button" class="btn btn-outline-secondary" onclick="load_order_to_pos('{{$ORDER->or_id}}','{{$ORDER->item_count}}','{{$ORDER->or_inserted_date}}')">
@@ -14,8 +13,10 @@
 
 <script>
     function load_order_to_pos(or_id, item_count, or_inserted_date) {
+
         $('#OR_ID_VAL').val('');
         $('#order_button_' + or_id).html('<button type="button" class="btn btn-outline-secondary" disabled><i class="bx bx-loader bx-spin font-size-16 align-middle me-2"></i> PROCESSING..</button>');
+        $("#selectedItems").empty();
 
         var link = '<?= url('/') ?>/load_order_to_pos';
         const formData = new FormData();

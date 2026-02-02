@@ -161,6 +161,7 @@
 <script>
     $(document).ready(function() {
 
+
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -183,6 +184,13 @@
                 dataType: 'json',
                 success: function(data) {
                     if (data.have_customer) {
+
+                        if (data.credit_allow == 1) {
+                            $('.5_PAYMENT_CODE').show();
+                        } else {
+                            $('.5_PAYMENT_CODE').hide();
+                        }
+
                         $('#cus_order_view').html('');
                         $('#customer_view_area').show();
                         $('#CUS_ID').val(data.customer_id).trigger('change');
@@ -196,16 +204,19 @@
                     }
 
                     if (data.havent_customer) {
+                        $('.5_PAYMENT_CODE').hide();
                         $('#load_register_form').html(data.view);
                         $('#CORPORATE_CUSTOMER_FORM_BTN').html('<button class="btn btn-primary w-100" type="submit">SUBMIT</button>');
                     }
 
                     if (data.error) {
+                        $('.5_PAYMENT_CODE').hide();
                         Swal.fire('Error!', data.error, 'error');
                         $('#CORPORATE_CUSTOMER_FORM_BTN').html('<button class="btn btn-primary w-100" type="submit">SUBMIT</button>');
                     }
                 },
                 error: function(error) {
+                    $('.5_PAYMENT_CODE').hide();
                     Swal.fire('Error!', error, 'error');
                     $('#CORPORATE_CUSTOMER_FORM_BTN').html('<button class="btn btn-primary w-100" type="submit">SUBMIT</button>');
                 }
@@ -239,6 +250,7 @@
                 dataType: 'json',
                 success: function(data) {
                     if (data.have_customer) {
+                        $('.5_PAYMENT_CODE').hide();
                         $('#cus_order_view').html('');
                         $('#customer_view_area').show();
                         $('#CUS_ID').val(data.customer_id).trigger('change');
@@ -249,16 +261,19 @@
                     }
 
                     if (data.havent_customer) {
+                        $('.5_PAYMENT_CODE').hide();
                         $('#load_register_form').html(data.view);
                         $('#INDIVIDUAL_CUSTOMER_CONTACT_NUMBER_FORM_BTN').html('<button class="btn btn-primary w-100" type="submit">SUBMIT</button>');
                     }
 
                     if (data.error) {
+                        $('.5_PAYMENT_CODE').hide();
                         Swal.fire('Error!', data.error, 'error');
                         $('#INDIVIDUAL_CUSTOMER_CONTACT_NUMBER_FORM_BTN').html('<button class="btn btn-primary w-100" type="submit">SUBMIT</button>');
                     }
                 },
                 error: function(error) {
+                    $('.5_PAYMENT_CODE').hide();
                     Swal.fire('Error!', error, 'error');
                     $('#INDIVIDUAL_CUSTOMER_CONTACT_NUMBER_FORM_BTN').html('<button class="btn btn-primary w-100" type="submit">SUBMIT</button>');
                 }
