@@ -34,6 +34,13 @@ $ACCESS_AREA_HEADINGS = session('USER_ACCESS_HEADERS');
                 @if(in_array("STOCK", $ACCESS_AREA_HEADINGS))
                 <li class="menu-title" key="t-apps">STOCK MANAGEMENT</li>
                 @endif
+                @if(in_array("21", $accessArea))
+                <li>
+                    <a href="{{url('/')}}/Stock" class="waves-effect">
+                        <i class="bx bx-archive"></i><span key="t-dashboards">Stock</span>
+                    </a>
+                </li>
+                @endif
                 @if(in_array("15", $accessArea) || in_array("18", $accessArea))
                 <li>
                     <a href="javascript: void(0);" class="has-arrow waves-effect" aria-expanded="false">
@@ -48,13 +55,6 @@ $ACCESS_AREA_HEADINGS = session('USER_ACCESS_HEADERS');
                         <li><a href="{{url('/')}}/Stock_In_History">Stock In History</a></li>
                         @endif
                     </ul>
-                </li>
-                @endif
-                @if(in_array("21", $accessArea))
-                <li>
-                    <a href="{{url('/')}}/Stock" class="waves-effect">
-                        <i class="bx bx-archive"></i><span key="t-dashboards">Stock</span>
-                    </a>
                 </li>
                 @endif
                 @if(in_array("24", $accessArea) || in_array("36", $accessArea))

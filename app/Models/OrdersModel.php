@@ -311,6 +311,30 @@ class OrdersModel extends Model
         return $result;
     }
 
+    public function get_collected_orders_by_customer_id2($CUS_ID, $MW_ID)
+    {
+        $result = DB::table('orders')
+            ->select(
+                'orders.*',
+                DB::raw('COUNT(order_items.ori_id) AS item_count')
+            )
+            ->join('order_items', function ($join) use ($CUS_ID) {
+                $join->on('order_items.ori_or_id', '=', 'orders.or_id')
+                    ->where('order_items.ori_status', 1)
+                    ->where('order_items.ori_complete', 0)
+                    ->where('order_items.ori_o_id', $CUS_ID);
+            })
+            ->where('orders.or_mw_id', $MW_ID)
+            ->where('orders.or_status', 1)
+            ->where('orders.or_os_id', 4)
+            ->groupBy('orders.or_id')
+            ->having(DB::raw('COUNT(order_items.ori_id)'), '!=', 0)
+            ->orderBy('orders.or_inserted_date', 'desc')
+            ->get();
+
+        return $result;
+    }
+
     public function get_order_items($OR_ID, $C_ID)
     {
         $data = DB::table('orders')
