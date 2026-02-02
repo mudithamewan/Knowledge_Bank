@@ -695,9 +695,7 @@
                     // 🔥 CASE 1: Returned invoice
                     if (response.type === 'returned_invoice') {
                         const data = response.data;
-
                         ri_amount = data.ri_amount ? data.ri_amount.toFixed(2) : '0.00';
-
                         $('#RI_ID').val(data.ri_id);
                         $('#returned_invoice_amount').html(ri_amount);
                         $('#RETURNED_INVOICE_AMOUNT').val(ri_amount);
@@ -942,6 +940,7 @@
                     CARD_PAID,
                     OTHER_PAID,
                     TOTAL_PAID_AMOUNT,
+                    RI_ID,
                 },
                 success: function(response) {
                     if (response.success) {
