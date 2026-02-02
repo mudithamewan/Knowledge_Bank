@@ -14,6 +14,7 @@
 
 <script>
     function load_order_to_pos(or_id, item_count, or_inserted_date) {
+        $('#OR_ID_VAL').val('');
         $('#order_button_' + or_id).html('<button type="button" class="btn btn-outline-secondary" disabled><i class="bx bx-loader bx-spin font-size-16 align-middle me-2"></i> PROCESSING..</button>');
 
         var link = '<?= url('/') ?>/load_order_to_pos';
@@ -32,6 +33,8 @@
             success: function(data) {
 
                 if (data.success) {
+
+                    $('#OR_ID_VAL').val('{{$ORDER->or_id}}');
 
                     let rows = '';
 

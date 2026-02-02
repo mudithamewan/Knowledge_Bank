@@ -189,7 +189,7 @@ class POSController extends Controller
 
         $CUSTOMER_DETAILS = $UserModel->get_organization_data($CUS_ID);;
         $MW_ID = session('POS_WAREHOUSE');
-        $ORDERS = $OrdersModel->get_collected_orders_by_customer_id($CUS_ID, $MW_ID);
+        $ORDERS = $OrdersModel->get_collected_orders_by_customer_id2($CUS_ID, $MW_ID);
         $view = null;
         if (count($ORDERS) > 0) {
             $view = (string)view('POS/Order_View', ['ORDERS' => $ORDERS, 'customer_id' => $CUSTOMER_DETAILS->o_id]);

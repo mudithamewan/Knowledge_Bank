@@ -214,6 +214,7 @@
                                     <input type="hidden" name="MW_ID" id="MW_ID" value="{{session('POS_WAREHOUSE')}}">
                                     <input type="hidden" name="CUS_ID" id="CUS_ID">
                                     <input type="hidden" name="IS_CORPARATE" id="IS_CORPARATE" value="0">
+                                    <input type="hidden" name="OR_ID_VAL" id="OR_ID_VAL" value="">
 
                                     <table class="table table-bordered table-sm align-middle">
                                         <thead class="table-light">
@@ -897,6 +898,7 @@
                 return;
             }
 
+            const OR_ID = $("#OR_ID_VAL").val();
             const MW_ID = $("#MW_ID").val();
             const CUS_ID = $("#CUS_ID").val();
             const IS_CORPARATE = $("#IS_CORPARATE").val();
@@ -941,6 +943,7 @@
                     OTHER_PAID,
                     TOTAL_PAID_AMOUNT,
                     RI_ID,
+                    OR_ID,
                 },
                 success: function(response) {
                     if (response.success) {

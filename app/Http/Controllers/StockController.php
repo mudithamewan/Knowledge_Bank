@@ -13,6 +13,7 @@ use App\Models\ValidationModel;
 use App\Models\CommonModel;
 use App\Models\UserModel;
 use App\Models\SettingsModel;
+use App\Models\OrdersModel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
@@ -327,6 +328,7 @@ class StockController extends Controller
         $CUS_ID = trim($request->input('CUS_ID'));
         $IS_CORPARATE = trim($request->input('IS_CORPARATE'));
         $RI_ID = trim($request->input('RI_ID'));
+        $OR_ID = trim($request->input('OR_ID'));
 
         if (empty($ITEMS)) {
             return json_encode(array('error' => 'Items not found!'));
@@ -474,6 +476,21 @@ class StockController extends Controller
                 DB::table('returned_invoices')
                     ->where('ri_id', $RI_ID)
                     ->update($update_data);
+            }
+
+            // order complete action
+            $OrdersModel = new OrdersModel();
+            $ORDER = $OrdersModel->get_order_details($OR_ID);
+            $ORDER_ITEMS = $OrdersModel->get_order_items($OR_ID, $CUS_ID);
+            foreach ($ORDER_ITEMS as $item) {
+                $data_update = array(
+                    'ori_updated_date' => date('Y-m-d H:i:s'),
+                    'ori_updated_by' => session('USER_ID'),
+                    'ori_complete' => 1,
+                );
+                DB::table('order_items')
+                    ->where('ori_id', $item->ori_id)
+                    ->update($data_update);
             }
 
             $CommonModel->update_work_log(session('USER_ID'), 'Stock In saved successfully. Stock Out ID:' . $STOCK_OUT_ID);

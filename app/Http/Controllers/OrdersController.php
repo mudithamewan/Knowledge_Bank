@@ -98,6 +98,7 @@ class OrdersController extends Controller
                         'ori_p_id' => $item['product_id'],
                         'ori_qty' => $item['qty'],
                         'ori_in_qty' => $item['qty'],
+                        'ori_complete' => 0,
                     );
                     DB::table('order_items')->insert($data2);
                 }
