@@ -64,7 +64,7 @@
     <div class="card-header bg-transparent border-bottom">
         <div class="d-flex flex-wrap align-items-start">
             <div class="me-2">
-                <h5 class="card-title mt-2 text-primary">INVOICE DETAILS</h5>
+                <h5 class="card-title mt-2 text-primary">RETURNED INVOICE DETAILS</h5>
             </div>
             <div class="ms-auto">
                 <form action="{{url('/')}}/get_invoices_filter_result_table" method="post">
@@ -86,18 +86,14 @@
             <table id="result_table" class="table table-sm">
                 <thead>
                     <tr>
+                        <th style="white-space: nowrap;">RETURN INVOICE CODE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">INVOICE CODE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
-                        <th style="white-space: nowrap;">INVOICE DATE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
-                        <th style="white-space: nowrap;">INVOICE BY <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
-                        <th style="white-space: nowrap;">SUB TOTAL <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
-                        <th style="white-space: nowrap;">DISCOUNT PERCENTAGE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
-                        <th style="white-space: nowrap;">DISCOUNT AMOUNT <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
-                        <th style="white-space: nowrap;">TOTAL PAYABLE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
-                        <th style="white-space: nowrap;">TOTAL PAID AMOUNT <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
-                        <th style="white-space: nowrap;">BALANCE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
-                        <th style="white-space: nowrap;">PAYMENT MODE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
+                        <th style="white-space: nowrap;">UPDATED DATE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
+                        <th style="white-space: nowrap;">UPDATED BY <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
+                        <th style="white-space: nowrap;">AMOUNT <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">WAREHOUSE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">STATUS <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
+                        <th style="white-space: nowrap;">CLAIMED DATED <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">ACTION</th>
                     </tr>
                 </thead>
@@ -111,7 +107,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="staticBackdropLabel">INVOICE</h5>
+                <h5 class="modal-title" id="staticBackdropLabel">RETURNED INVOICE</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -147,8 +143,8 @@
 
 <script>
     function loadPrintInvoice(pdfUrl) {
-        // const modal = new bootstrap.Modal(document.getElementById('invoice_view2'));
-        // modal.show();
+        const modal = new bootstrap.Modal(document.getElementById('invoice_view2'));
+        modal.show();
 
         const pdfFrame = document.getElementById('pdfFrame');
         pdfFrame.style.display = 'block';
@@ -177,7 +173,7 @@
                 headers: {
                     'X-CSRF-TOKEN': "{{csrf_token()}}"
                 },
-                url: "{{url('/')}}/get_invoices_filter_result_table",
+                url: "{{url('/')}}/get_returned_invoices_filter_result_table",
                 data: {
                     FROM_DATE: '{{$FROM_DATE}}',
                     TO_DATE: '{{$TO_DATE}}',
@@ -191,11 +187,15 @@
                 processing: '<i class="bx bx-loader bx-spin h1 align-middle me-2 text-primary"></i>',
             },
             columns: [{
+                    data: 'ri_invoice_no',
+                    render: renderNA
+                },
+                {
                     data: 'in_invoice_no',
                     render: renderNA
                 },
                 {
-                    data: 'in_updated_date',
+                    data: 'ri_inserted_date',
                     render: renderNA
                 },
                 {
@@ -203,7 +203,7 @@
                     render: renderNA
                 },
                 {
-                    data: 'in_sub_total',
+                    data: 'ri_amount',
                     render: function(data, type) {
                         if (!data || isNaN(data)) return 'N/A';
                         let value = parseFloat(data);
@@ -212,86 +212,29 @@
                         }
                         return value;
                     }
-                },
-                {
-                    data: 'in_discount_percentage',
-                    render: function(data, type) {
-                        if (!data || isNaN(data)) return 'N/A';
-                        let value = parseFloat(data);
-                        if (type === 'display') {
-                            return `<span data-value="${value}">${value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>`;
-                        }
-                        return value;
-                    }
-                },
-                {
-                    data: 'in_discount_amount',
-                    render: function(data, type) {
-                        if (!data || isNaN(data)) return 'N/A';
-                        let value = parseFloat(data);
-                        if (type === 'display') {
-                            return `<span data-value="${value}">${value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>`;
-                        }
-                        return value;
-                    }
-                },
-                {
-                    data: 'in_total_payable',
-                    render: function(data, type) {
-                        if (!data || isNaN(data)) return 'N/A';
-                        let value = parseFloat(data);
-                        if (type === 'display') {
-                            return `<span data-value="${value}">${value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>`;
-                        }
-                        return value;
-                    }
-                },
-                {
-                    data: 'in_total_paid_amount',
-                    render: function(data, type) {
-                        if (!data || isNaN(data)) return 'N/A';
-                        let value = parseFloat(data);
-                        if (type === 'display') {
-                            return `<span data-value="${value}">${value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>`;
-                        }
-                        return value;
-                    }
-                },
-                {
-                    data: 'in_total_balance',
-                    render: function(data, type) {
-                        if (!data || isNaN(data)) return 'N/A';
-                        let value = parseFloat(data);
-                        if (type === 'display') {
-                            return `<span data-value="${value}">${value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>`;
-                        }
-                        return value;
-                    }
-                },
-                {
-                    data: 'mpt_name',
-                    render: renderNA
                 },
                 {
                     data: 'mw_name',
                     render: renderNA
                 },
                 {
-                    data: 'in_is_returned',
+                    data: 'ri_claim_status',
                     render: function(data, type, row) {
-                        if (row['in_is_partial_returned'] == 1) {
-                            return `<span class="badge badge-pill badge-soft-danger font-size-11">P.RETURNED</span>`;
-                        } else if (data == 1) {
-                            return `<span class="badge badge-pill badge-soft-danger font-size-11">RETURNED</span>`;
+                        if (data == 1) {
+                            return `<span class="badge badge-pill badge-soft-success font-size-11">CLAIMD</span>`;
                         } else {
-                            return `<span class="badge badge-pill badge-soft-success font-size-11">ACTIVE</span>`;
+                            return `<span class="badge badge-pill badge-soft-warning font-size-11">PENDING</span>`;
                         }
 
                     }
 
                 },
                 {
-                    data: 'in_id',
+                    data: 'ri_claim_date',
+                    render: renderNA
+                },
+                {
+                    data: 'ri_id',
                     render: function(d) {
                         const baseUrl = "{{ url('/') }}";
                         const csrf = "{{ csrf_token() }}";
@@ -301,7 +244,7 @@
                                     data-bs-toggle="modal"
                                     data-bs-target="#invoice_view"
                                     onclick="ajax_action(
-                                        '${baseUrl}/load_invoice',
+                                        '${baseUrl}/load_returned_invoice',
                                         'LOAD_INVOICE',
                                         JSON.stringify({ INVOICE_ID: ${d} }),
                                         '${csrf}'
@@ -311,7 +254,7 @@
                                 
                                 <a href="javascript:void(0)" 
                                     class="btn btn-success btn-sm"
-                                    onclick="loadPrintInvoice('${baseUrl}/PrintInvoice/${btoa(d)}')">
+                                    onclick="loadPrintInvoice('${baseUrl}/PrintReturnInvoice/${btoa(d)}')">
                                     PRINT
                                 </a>
                             </div>

@@ -464,6 +464,29 @@ class StockModel extends Model
         return $result;
     }
 
+    public function get_returned_invoice_details($FROM_DATE, $TO_DATE, $MW_ID)
+    {
+        $formattedFromDate = date('Y-m-d', strtotime($FROM_DATE));
+        $formattedToDate = date('Y-m-d', strtotime($TO_DATE . ' +1 days'));
+
+        $query = DB::table('returned_invoices')
+            ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'returned_invoices.ri_mw_id')
+            ->join('invoices', 'invoices.in_id', '=', 'returned_invoices.ri_in_id')
+            ->join('system_users', 'system_users.su_id', '=', 'returned_invoices.ri_inserted_by')
+            ->where('returned_invoices.ri_status', 1)
+            ->whereBetween('returned_invoices.ri_inserted_date', [$formattedFromDate, $formattedToDate]);
+
+        if ($MW_ID != 'ALL') {
+            $query->where('returned_invoices.ri_mw_id', $MW_ID);
+        }
+
+        $result = $query->orderBy('returned_invoices.ri_inserted_date', 'DESC')
+            ->select('*')
+            ->get();
+
+        return $result;
+    }
+
     public function get_invoice_data_by_id($INVOICE_ID)
     {
         $result = DB::table('invoices')
@@ -654,18 +677,10 @@ class StockModel extends Model
     public function get_returned_invoice_by_in_no($INVOICE_ID)
     {
         $result = DB::table('returned_invoices')
-            ->join(
-                'returned_invoice_items',
-                'returned_invoice_items.rii_ri_id',
-                '=',
-                'returned_invoices.ri_id'
-            )
-            ->join(
-                'products',
-                'products.p_id',
-                '=',
-                'returned_invoice_items.rii_p_id'
-            )
+            ->join('invoices', 'invoices.in_id', '=', 'returned_invoices.ri_in_id')
+            ->join('returned_invoice_items', 'returned_invoice_items.rii_ri_id', '=', 'returned_invoices.ri_id')
+            ->join('products', 'products.p_id', '=', 'returned_invoice_items.rii_p_id')
+            ->join('system_users', 'system_users.su_id', '=', 'returned_invoices.ri_inserted_by')
             ->where('returned_invoices.ri_in_id', $INVOICE_ID)
             ->where('returned_invoices.ri_status', 1)
             ->where('returned_invoice_items.rii_status', 1)
