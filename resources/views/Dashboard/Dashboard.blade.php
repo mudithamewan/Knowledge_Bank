@@ -3,6 +3,14 @@
 
 <head>
     @include('Layout/head')
+    <style>
+        .product-stock-scroll {
+            height: calc(100% - 220px);
+            max-height: 387px;
+            min-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 
 <body data-sidebar="dark">
@@ -161,7 +169,7 @@
                                         </div>
                                         <h4 class="card-title text-primary mb-4">PRODUCT STOCKS</h4>
                                     </div>
-                                    <div style="height: 41vh; overflow-y: auto;">
+                                    <div class="product-stock-scroll">
                                         <span id="product_stock"></span>
                                     </div>
                                 </div>

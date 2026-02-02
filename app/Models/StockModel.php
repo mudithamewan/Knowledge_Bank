@@ -463,7 +463,29 @@ class StockModel extends Model
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'invoices.in_mw_id')
             ->join('system_users', 'system_users.su_id', '=', 'invoices.in_inserted_by')
             ->where('invoices.in_status', 1)
-            ->whereBetween('invoices.in_updated_date', [$formattedFromDate, $formattedToDate]);
+            ->whereBetween('invoices.in_updated_date', [$formattedFromDate, $formattedToDate])
+            ->select('invoices.*', 'master_credit_periods.*', 'master_payment_types.*', 'master_warehouses.*', 'system_users.*')
+            ->selectRaw("
+                    CASE
+                        WHEN invoices.in_total_balance > 0 AND invoices.in_is_credit_settled = 0 THEN
+                            GREATEST(
+                                0,
+                                DATEDIFF(CURDATE(), DATE(invoices.in_inserted_date))
+                            )
+                        ELSE 0
+                    END AS days_passed
+                ")
+            ->selectRaw("
+                    CASE
+                        WHEN invoices.in_total_balance > 0 AND invoices.in_is_credit_settled = 0 THEN
+                            GREATEST(
+                                0,
+                                DATEDIFF(CURDATE(), DATE(invoices.in_inserted_date))
+                                - IFNULL(master_credit_periods.mcp_day_count, 0)
+                            )
+                        ELSE 0
+                    END AS exceeded_credit_days
+                ");
 
         if ($MW_ID != 'ALL') {
             $query->where('invoices.in_mw_id', $MW_ID);
@@ -618,7 +640,29 @@ class StockModel extends Model
             ->join('customers', 'customers.c_id', '=', 'invoices.in_customer_id')
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'invoices.in_mw_id')
             ->where('invoices.in_is_corparate', 0)
-            ->where('customers.c_id', $CUS_ID);
+            ->where('customers.c_id', $CUS_ID)
+            ->select('invoices.*', 'master_credit_periods.*', 'master_payment_types.*', 'master_warehouses.*', 'system_users.*', 'customers.*')
+            ->selectRaw("
+                    CASE
+                        WHEN invoices.in_total_balance > 0 AND invoices.in_is_credit_settled = 0 THEN
+                            GREATEST(
+                                0,
+                                DATEDIFF(CURDATE(), DATE(invoices.in_inserted_date))
+                            )
+                        ELSE 0
+                    END AS days_passed
+                ")
+            ->selectRaw("
+                    CASE
+                        WHEN invoices.in_total_balance > 0 AND invoices.in_is_credit_settled = 0 THEN
+                            GREATEST(
+                                0,
+                                DATEDIFF(CURDATE(), DATE(invoices.in_inserted_date))
+                                - IFNULL(master_credit_periods.mcp_day_count, 0)
+                            )
+                        ELSE 0
+                    END AS exceeded_credit_days
+                ");
 
 
         if ($IS_COUNT == 0) {
@@ -641,14 +685,35 @@ class StockModel extends Model
     public function get_user_invoices($USER_ID, $IS_COUNT, $FROM_DATE = null, $TO_DATE = null, $MW_ID = null)
     {
         $data = DB::table('invoices')
-            ->select('*')
             ->leftJoin('master_credit_periods', 'master_credit_periods.mcp_id', '=', 'invoices.in_mcp_id')
             ->join('system_users', 'system_users.su_id', '=', 'invoices.in_inserted_by')
             ->join('master_payment_types', 'master_payment_types.mpt_id', '=', 'invoices.in_mpt_id')
             ->leftJoin('customers', 'customers.c_id', '=', 'invoices.in_customer_id')
             ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'invoices.in_mw_id')
             ->where('invoices.in_is_corparate', 0)
-            ->where('invoices.in_inserted_by', $USER_ID);
+            ->where('invoices.in_inserted_by', $USER_ID)
+            ->select('invoices.*', 'master_credit_periods.*', 'master_payment_types.*', 'master_warehouses.*', 'system_users.*', 'customers.*')
+            ->selectRaw("
+                    CASE
+                        WHEN invoices.in_total_balance > 0 AND invoices.in_is_credit_settled = 0 THEN
+                            GREATEST(
+                                0,
+                                DATEDIFF(CURDATE(), DATE(invoices.in_inserted_date))
+                            )
+                        ELSE 0
+                    END AS days_passed
+                ")
+            ->selectRaw("
+                    CASE
+                        WHEN invoices.in_total_balance > 0 AND invoices.in_is_credit_settled = 0 THEN
+                            GREATEST(
+                                0,
+                                DATEDIFF(CURDATE(), DATE(invoices.in_inserted_date))
+                                - IFNULL(master_credit_periods.mcp_day_count, 0)
+                            )
+                        ELSE 0
+                    END AS exceeded_credit_days
+                ");
 
 
         if ($IS_COUNT == 0) {

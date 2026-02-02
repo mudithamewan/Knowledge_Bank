@@ -709,6 +709,7 @@ class UserController extends Controller
 
         $TODAY_INVOICES_COUNT = $UserModel->get_filtered_invoiecs_organization(1, date('Y-m-d'), date('Y-m-d'), $ORG_ID);
         $TOTAL_CREDIT_AMOUNT = $UserModel->get_total_credit_amount($ORG_ID);
+        $TOTAL_EXCEEDED_CREDIT_AMOUNT = $UserModel->get_exceeded_credit_amount($ORG_ID);
 
         return view('User/Organization_Profile', [
             'ORG_ID' => $ORG_ID,
@@ -717,6 +718,7 @@ class UserController extends Controller
             'ORGANIZATION_DOCUMENTS' => $ORGANIZATION_DOCUMENTS,
             'TODAY_INVOICES_COUNT' => $TODAY_INVOICES_COUNT,
             'TOTAL_CREDIT_AMOUNT' => $TOTAL_CREDIT_AMOUNT,
+            'TOTAL_EXCEEDED_CREDIT_AMOUNT' => $TOTAL_EXCEEDED_CREDIT_AMOUNT,
         ]);
     }
 

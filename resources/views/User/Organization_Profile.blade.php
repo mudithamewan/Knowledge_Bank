@@ -247,12 +247,23 @@
                                 </div>
                                 <div class="col-xl-4">
                                     <div class="card d-flex flex-row align-items-center">
-                                        <div class="d-flex align-items-center justify-content-center bg-danger text-white rounded-start" style="width: 70px; height: 70px;">
+                                        <div class="d-flex align-items-center justify-content-center bg-warning text-white rounded-start" style="width: 70px; height: 70px;">
                                             <i class="bx bxs-wallet  h1 text-white mb-0"></i>
                                         </div>
                                         <div class="ms-3">
                                             <p class="text-muted mb-2">CREDIT AMOUNT</p>
                                             <h5 class="mb-0">LKR {{number_format($TOTAL_CREDIT_AMOUNT,2)}}</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-4">
+                                    <div class="card d-flex flex-row align-items-center">
+                                        <div class="d-flex align-items-center justify-content-center bg-danger text-white rounded-start" style="width: 70px; height: 70px;">
+                                            <i class="bx bx-error h1 text-white mb-0"></i>
+                                        </div>
+                                        <div class="ms-3">
+                                            <p class="text-muted mb-2">EXCEEDED CREDIT AMOUNT</p>
+                                            <h5 class="mb-0">LKR {{number_format($TOTAL_EXCEEDED_CREDIT_AMOUNT,2)}}</h5>
                                         </div>
                                     </div>
                                 </div>

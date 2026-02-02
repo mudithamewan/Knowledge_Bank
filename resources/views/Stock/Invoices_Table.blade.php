@@ -97,6 +97,7 @@
                         <th style="white-space: nowrap;">BALANCE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">PAYMENT MODE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">CREDIT PERIOD <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
+                        <th style="white-space: nowrap;">EXCEEDED DAYS <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">WAREHOUSE <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">STATUS <span class="filter-icon"><i class="bx bx-filter"></i></span></th>
                         <th style="white-space: nowrap;">ACTION</th>
@@ -275,6 +276,10 @@
                 },
                 {
                     data: 'mcp_name',
+                    render: renderNA
+                },
+                {
+                    data: 'exceeded_credit_days',
                     render: renderNA
                 },
                 {

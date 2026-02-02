@@ -295,7 +295,28 @@ class UserModel extends Model
             ->where('invoices.in_customer_id', $O_ID)
             ->whereBetween('invoices.in_inserted_date', [$formattedFromDate, $formattedToDate])
             ->orderByDesc('invoices.in_inserted_date')
-            ->select('*');
+            ->select('invoices.*', 'master_credit_periods.*', 'master_payment_types.*', 'master_warehouses.*', 'system_users.*')
+            ->selectRaw("
+                    CASE
+                        WHEN invoices.in_total_balance > 0 AND invoices.in_is_credit_settled = 0 THEN
+                            GREATEST(
+                                0,
+                                DATEDIFF(CURDATE(), DATE(invoices.in_inserted_date))
+                            )
+                        ELSE 0
+                    END AS days_passed
+                ")
+            ->selectRaw("
+                    CASE
+                        WHEN invoices.in_total_balance > 0 AND invoices.in_is_credit_settled = 0 THEN
+                            GREATEST(
+                                0,
+                                DATEDIFF(CURDATE(), DATE(invoices.in_inserted_date))
+                                - IFNULL(master_credit_periods.mcp_day_count, 0)
+                            )
+                        ELSE 0
+                    END AS exceeded_credit_days
+                ");
 
         if ($IS_COUNT == 1) {
             $result =  (string)$data->count();
@@ -313,8 +334,34 @@ class UserModel extends Model
             ->where('in_is_corparate', 1)
             ->where('in_customer_id', $ORG_ID)
             ->where('in_total_balance', '>', 0)
+            ->where('in_is_credit_settled', 0)
             ->sum('in_total_balance');
 
         return  $credit;
+    }
+
+    public function get_exceeded_credit_amount($ORG_ID)
+    {
+        $exceededTotalBalance = DB::table('invoices')
+            ->leftJoin(
+                'master_credit_periods',
+                'master_credit_periods.mcp_id',
+                '=',
+                'invoices.in_mcp_id'
+            )
+            ->where('invoices.in_status', 1)
+            ->where('invoices.in_is_corparate', 1)
+            ->where('invoices.in_customer_id', $ORG_ID)
+            ->where('invoices.in_total_balance', '>', 0)
+            ->where('invoices.in_is_credit_settled', 0)
+            ->whereRaw('
+        (
+            DATEDIFF(CURDATE(), DATE(invoices.in_inserted_date))
+            - IFNULL(master_credit_periods.mcp_day_count, 0)
+        ) > 0
+    ')
+            ->sum('invoices.in_total_balance');
+
+        return  $exceededTotalBalance;
     }
 }
