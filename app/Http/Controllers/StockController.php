@@ -342,7 +342,6 @@ class StockController extends Controller
         $TOTAL_DISCOUNT = 0;
         $SUB_TOTAL = 0;
 
-
         foreach ($ITEMS as $item) {
             $ID = $item['id'];
             $DISCOUNT = $item['discount'];
@@ -385,6 +384,15 @@ class StockController extends Controller
             }
 
             $SUB_TOTAL = $SUB_TOTAL + (($AB_DETAILS->as_selling_price * $QTY) - $DISCOUNT_PRICE);
+        }
+
+
+        if ($MPT_ID != 5) {
+            if ($SUB_TOTAL <= 0) {
+                return json_encode(array('error' => 'Invalid total amount. Total payable must be greater than 0!'));
+            } else if ($SUB_TOTAL > $TOTAL_PAID_AMOUNT) {
+                return json_encode(array('error' => 'Insufficient payment. Total paid must match the payable amount.'));
+            }
         }
 
 

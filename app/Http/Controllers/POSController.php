@@ -195,7 +195,7 @@ class POSController extends Controller
             $view = (string)view('POS/Order_View', ['ORDERS' => $ORDERS, 'customer_id' => $CUSTOMER_DETAILS->o_id]);
         }
 
-        return json_encode(array('have_customer' => true, 'customer_id' => $CUSTOMER_DETAILS->o_id, 'customer_name' => $CUSTOMER_DETAILS->o_business_name, 'customer_title' => $CUSTOMER_DETAILS->o_br_number, 'order_view' => $view));
+        return json_encode(array('have_customer' => true, 'credit_allow' => $CUSTOMER_DETAILS->o_credit_allow, 'customer_id' => $CUSTOMER_DETAILS->o_id, 'customer_name' => $CUSTOMER_DETAILS->o_business_name, 'customer_title' => $CUSTOMER_DETAILS->o_br_number, 'order_view' => $view));
     }
 
     public function PrintInvoice($INVOICE_ID)

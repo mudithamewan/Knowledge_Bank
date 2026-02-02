@@ -24,6 +24,16 @@
             background-color: #f8f9fa;
             cursor: pointer;
         }
+
+        .selected-items-body {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .selected-items-body table {
+            width: 100%;
+            table-layout: fixed;
+        }
     </style>
 </head>
 
@@ -216,7 +226,44 @@
                                     <input type="hidden" name="IS_CORPARATE" id="IS_CORPARATE" value="0">
                                     <input type="hidden" name="OR_ID_VAL" id="OR_ID_VAL" value="">
 
-                                    <table class="table table-bordered table-sm align-middle">
+                                    <table class="table  table-sm align-middle mb-0">
+                                        <colgroup>
+                                            <col style="width:30%">
+                                            <col style="width:15%">
+                                            <col style="width:15%">
+                                            <col style="width:15%">
+                                            <col style="width:15%">
+                                            <col style="width:5%">
+                                        </colgroup>
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Item</th>
+                                                <th class="text-center">Selling Price</th>
+                                                <th class="text-center">Qty</th>
+                                                <th class="text-center">Discount (%)</th>
+                                                <th class="text-center">Total</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                    <div class="selected-items-body">
+                                        <table class="table table-bordered table-sm align-middle mb-0">
+                                            <colgroup>
+                                                <col style="width:30%">
+                                                <col style="width:15%">
+                                                <col style="width:15%">
+                                                <col style="width:15%">
+                                                <col style="width:15%">
+                                                <col style="width:5%">
+                                            </colgroup>
+                                            <tbody id="selectedItems"></tbody>
+                                        </table>
+                                    </div>
+
+
+
+
+                                    <!-- <table class="table table-bordered table-sm align-middle">
                                         <thead class="table-light">
                                             <tr>
                                                 <th width="30%">Item</th>
@@ -228,9 +275,12 @@
                                             </tr>
                                         </thead>
                                         <tbody id="selectedItems"></tbody>
-                                    </table>
+                                    </table> -->
 
                                     <div class="row">
+                                        <div class="col-xl-12">
+                                            <div class="mt-3 mb-2" style="border-top:3px solid #eff2f7"></div>
+                                        </div>
                                         <div class="col-xl-4"></div>
                                         <div class="col-xl-8">
                                             <table width="100%">
@@ -294,8 +344,14 @@
                                                     <th colspan="3" style="text-align: right;">
                                                         <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
                                                             @foreach($PAYMENT_TYPES as $index => $TYPE)
-                                                            <input type="radio" class="btn-check" name="MPT_ID" id="MPT_ID{{$TYPE->mpt_id}}" value="{{$TYPE->mpt_id}}" autocomplete="off">
-                                                            <label class="btn btn-outline-secondary" for="MPT_ID{{$TYPE->mpt_id}}">{{strtoupper($TYPE->mpt_name)}}</label>
+
+                                                            @php $style = ""; @endphp
+                                                            @if($TYPE->mpt_id == 5)
+                                                            @php $style = "display:none;"; @endphp
+                                                            @endif
+
+                                                            <input type="radio" class="btn-check {{$TYPE->mpt_id}}_PAYMENT_CODE" name="MPT_ID" id="MPT_ID{{$TYPE->mpt_id}}" value="{{$TYPE->mpt_id}}" autocomplete="off" style="<?= $style ?>">
+                                                            <label class="btn btn-outline-secondary {{$TYPE->mpt_id}}_PAYMENT_CODE" for="MPT_ID{{$TYPE->mpt_id}}" style="<?= $style ?>">{{strtoupper($TYPE->mpt_name)}}</label>
                                                             @endforeach
                                                         </div>
                                                     </th>
@@ -419,6 +475,8 @@
 
         // ============ RESET POS AFTER PRINT ============ //
         function resetPOS() {
+            $('.5_PAYMENT_CODE').hide();
+
             // clear items table
             $("#selectedItems").empty();
 
@@ -448,6 +506,8 @@
             $("#cus_name").text("");
             $("#cus_title").text("");
             $("#cus_order_view").html("");
+
+            $("#OR_ID_VAL").val("");
 
             // reset search
             resetSearch(true);
@@ -540,9 +600,11 @@
                 $("#CARD_PAID").val(grandTotal.toFixed(2));
             } else if (MPT_ID === "3") {
                 $("#CASH_AMOUNT_ROW, #CARD_AMOUNT_ROW").show();
-            } else if (MPT_ID) {
+            } else if (MPT_ID === "4") {
                 $("#OTHER_AMOUNT_ROW").show();
                 $("#OTHER_AMOUNT").val(grandTotal.toFixed(2));
+            } else if (MPT_ID === "5") {
+                $("#OTHER_AMOUNT_ROW").show();
             }
 
             updatePaymentTotals();
