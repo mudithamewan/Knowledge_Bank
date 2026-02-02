@@ -57,11 +57,20 @@ $ACCESS_AREA_HEADINGS = session('USER_ACCESS_HEADERS');
                     </a>
                 </li>
                 @endif
-                @if(in_array("24", $accessArea))
+                @if(in_array("24", $accessArea) || in_array("36", $accessArea))
                 <li>
-                    <a href="{{url('/')}}/Invoices" class="waves-effect">
-                        <i class="bx bx-receipt"></i><span key="t-dashboards">Invoices</span>
+                    <a href="javascript: void(0);" class="has-arrow waves-effect" aria-expanded="false">
+                        <i class="bx bx-receipt"></i>
+                        <span key="t-utility">Invoices</span>
                     </a>
+                    <ul class="sub-menu mm-collapse" aria-expanded="false">
+                        @if(in_array("24", $accessArea))
+                        <li><a href="{{url('/')}}/Invoices">Invoices</a></li>
+                        @endif
+                        @if(in_array("37", $accessArea))
+                        <li><a href="{{url('/')}}/Returned_Invoices">Returned Invoices</a></li>
+                        @endif
+                    </ul>
                 </li>
                 @endif
                 @if(in_array("35", $accessArea) || in_array("36", $accessArea))

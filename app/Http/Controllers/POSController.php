@@ -721,7 +721,7 @@ class POSController extends Controller
                         return json_encode(array('error' => "You havent active punch."));
                     } else {
                         $data = array(
-                            'pu_amount' => $PUNCH->pu_amount + $TOTAL_PU_AMT
+                            'pu_amount' => $PUNCH->pu_amount + ($TOTAL_PU_AMT - ($TOTAL_PU_AMT * $INVOICE_DATA->in_discount_percentage / 100))
                         );
                         DB::table('punches')
                             ->where('pu_id', $PUNCH->pu_id)
@@ -737,7 +737,7 @@ class POSController extends Controller
                     'ri_inserted_by' => session('USER_ID'),
                     'ri_invoice_no' => $StockModel->generateReturnedInvoiceNo(),
                     'ri_in_id' => $INVOICE_ID,
-                    'ri_amount' => $TOTAL_PU_AMT,
+                    'ri_amount' => ($TOTAL_PU_AMT - ($TOTAL_PU_AMT * $INVOICE_DATA->in_discount_percentage / 100)),
                     'ri_is_returned' => $full_return,
                     'ri_is_partial_returned' => $partial_return,
                     'ri_mw_id' => $MW_ID,
@@ -753,7 +753,7 @@ class POSController extends Controller
                             'rii_inserted_by' => session('USER_ID'),
                             'rii_ri_id' => $RI_ID,
                             'rii_p_id' => $data->ini_p_id,
-                            'rii_selling_amount' => $data->ini_selling_price,
+                            'rii_selling_amount' => $data->ini_selling_price - ($data->ini_selling_price * $INVOICE_DATA->in_discount_percentage / 100),
                             'rii_qty' => $RETURNED_ITEMS_QTY_ARRAY[$data->ini_id],
                         );
                         DB::table('returned_invoice_items')->insert($data4);

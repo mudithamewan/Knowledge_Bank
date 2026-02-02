@@ -227,8 +227,8 @@
                                 <td class="text-right">{{number_format($INVOICE_DATA->in_sub_total,2)}}</td>
                             </tr>
                             <tr>
-                                <td>Discount (0%)</td>
-                                <td class="text-right"><small>({{$INVOICE_DATA->in_discount_percentage}}%)</small> {{number_format($INVOICE_DATA->in_discount_amount,2)}}</td>
+                                <td>Discount ({{$INVOICE_DATA->in_discount_percentage}}%)</td>
+                                <td class="text-right">{{number_format($INVOICE_DATA->in_discount_amount,2)}}</td>
                             </tr>
                             <tr>
                                 <td>Total Payable</td>
@@ -452,8 +452,11 @@
 
                 qtyInput.val(returnedQty);
 
-                // Amount calc
-                total += unitPrice * returnedQty;
+                <?php if ($INVOICE_DATA->in_discount_percentage > 0) { ?>
+                    total += (unitPrice * returnedQty) - ((unitPrice * returnedQty) * <?= $INVOICE_DATA->in_discount_percentage ?> / 100);
+                <?php } else { ?>
+                    total += unitPrice * returnedQty;
+                <?php } ?>
 
                 // Push ID + QTY
                 returnedItems.push(itemId + ':' + returnedQty);
