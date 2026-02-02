@@ -53,6 +53,7 @@
     <div class="center bold" style="font-size: 12px;">Knowledge Bank Publisher</div>
     <div class="center" style="font-size: 7px">No 7A, Sethsiri Place, Pannipitiya</div>
     <div class="center" style="font-size: 6px;">Tel: 0712 100 111 / 075 5100 111</div>
+    <div class="center" style="font-size: 5px;">Outlet: {{trim($INVOICE_DATA->mw_name)}}</div>
     <hr>
 
 
@@ -62,6 +63,7 @@
                 <div style="font-size: 7px">Invoice No: {{$INVOICE_DATA->in_invoice_no}}</div>
                 <div style="font-size: 7px">Date: {{$INVOICE_DATA->in_inserted_date}}</div>
                 <div style="font-size: 7px">Payment Method: {{$INVOICE_DATA->mpt_name}}</div>
+                <div style="font-size: 7px">User: {{explode(' ', $INVOICE_DATA->su_name)[0]}}</div>
             </td>
             <td>
                 @if(!empty($CUSTOMER_DETAILS))
@@ -94,8 +96,8 @@
             <tr>
                 <td style="font-size: 7px; <?= $index == 0 ? 'padding-top:2px;' : '' ?>">{{ strtoupper($data->p_name) }}</td>
                 <td style="text-align:right; font-size: 7px; text-align:center; <?= $index == 0 ? 'padding-top:2px;' : '' ?>">{{ $data->ini_qty }}</td>
-                <td style="text-align:right; font-size: 7px; <?= $index == 0 ? 'padding-top:2px;' : '' ?>">{{ number_format(($data->ini_selling_price * $data->ini_qty),2) }}</td>
-                <td style="text-align:right; font-size: 7px; text-align:center; <?= $index == 0 ? 'padding-top:2px;' : '' ?>">{{ empty($data->ini_discount_percentage) ? 0:$data->ini_discount_percentage }}</td>
+                <td style="text-align:right; font-size: 7px; <?= $index == 0 ? 'padding-top:2px;' : '' ?>">{{ number_format(($data->ini_selling_price),2) }}</td>
+                <td style="text-align:right; font-size: 7px; text-align:center; <?= $index == 0 ? 'padding-top:2px;' : '' ?>">{{ empty($data->ini_discount_percentage) ? '-':$data->ini_discount_percentage }}</td>
                 <td style=" text-align:right; font-size: 7px; <?= $index == 0 ? 'padding-top:2px;' : '' ?>">{{ number_format($data->ini_final_price *  $data->ini_qty, 2) }}</td>
             </tr>
             @endforeach
@@ -140,9 +142,7 @@
 
     <div class="center" style="margin-top:6px;">
         {!! DNS1D::getBarcodeHTML($INVOICE_DATA->in_invoice_no, 'C128', 1, 25) !!}
-        <div style="font-size:7px; margin-top:2px;">
-            {{$INVOICE_DATA->in_invoice_no}}
-        </div>
+
     </div>
 </body>
 

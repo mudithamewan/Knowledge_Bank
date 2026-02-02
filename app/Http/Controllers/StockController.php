@@ -594,6 +594,17 @@ class StockController extends Controller
         ]);
     }
 
+    public function Returned_Invoices(Request $request)
+    {
+        $StockModel = new StockModel();
+
+        $WAREHOUSES = $StockModel->get_active_stock_locations();
+
+        return view('Stock/Returned_Invoices', [
+            'WAREHOUSES' => $WAREHOUSES
+        ]);
+    }
+
     public function get_invoice_filter_result(Request $request)
     {
         $status = $this->get_stock_filter_validation($request);
@@ -605,6 +616,25 @@ class StockController extends Controller
             $MW_ID = trim($request->input('MW_ID'));
 
             $view = (string)view('Stock/Invoices_Table', [
+                'FROM_DATE' => $FROM_DATE,
+                'TO_DATE' => $TO_DATE,
+                'MW_ID' => $MW_ID,
+            ]);
+            return json_encode(array('result' => $view));
+        }
+    }
+
+    public function get_returned_invoice_filter_result(Request $request)
+    {
+        $status = $this->get_stock_filter_validation($request);
+        if (!empty($status)) {
+            return json_encode(array('error' => $status));
+        } else {
+            $FROM_DATE = trim($request->input('FROM_DATE'));
+            $TO_DATE = trim($request->input('TO_DATE'));
+            $MW_ID = trim($request->input('MW_ID'));
+
+            $view = (string)view('Stock/Returned_Invoices_Table', [
                 'FROM_DATE' => $FROM_DATE,
                 'TO_DATE' => $TO_DATE,
                 'MW_ID' => $MW_ID,
@@ -627,6 +657,39 @@ class StockController extends Controller
             $DOWNLOAD = trim($request->input('DOWNLOAD'));
 
             $result = $StockModel->get_invoice_details($FROM_DATE, $TO_DATE, $MW_ID);
+
+            if ($DOWNLOAD == 'YES') {
+                $view = (string)view('Stock/Download/Invoice_Download', [
+                    'result' => $result,
+                ]);
+                header("Content-Type:   application/vnd.ms-excel; charset=utf-8");
+                header("Content-Disposition: attachment; filename=Stock Download.xls");
+                header("Expires: 0");
+                header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+                header("Cache-Control: private", false);
+                echo $view;
+            } else {
+                if ($request->ajax()) {
+                    return datatables()->of($result)->toJson();
+                }
+            }
+        }
+    }
+
+    public function get_returned_invoices_filter_result_table(Request $request)
+    {
+        $status = $this->get_stock_filter_validation($request);
+        if (!empty($status)) {
+            return json_encode(array('error' => $status));
+        } else {
+            $StockModel = new StockModel();
+
+            $FROM_DATE = trim($request->input('FROM_DATE'));
+            $TO_DATE = trim($request->input('TO_DATE'));
+            $MW_ID = trim($request->input('MW_ID'));
+            $DOWNLOAD = trim($request->input('DOWNLOAD'));
+
+            $result = $StockModel->get_returned_invoice_details($FROM_DATE, $TO_DATE, $MW_ID);
 
             if ($DOWNLOAD == 'YES') {
                 $view = (string)view('Stock/Download/Invoice_Download', [
@@ -677,6 +740,22 @@ class StockController extends Controller
         return json_encode(array('result' => $view));
     }
 
+    public function load_returned_invoice(Request $request)
+    {
+        $DATA = json_decode(trim($request->input('DATA')));
+        $RETURNED_INVOICE_ID = $DATA->INVOICE_ID;
+
+        $StockModel = new StockModel();
+
+        $RETURNED_INVOICE = $StockModel->get_returned_invoice_by_in_no($RETURNED_INVOICE_ID);
+
+        $view = (string)view('Stock/Retruned_Invoice_View', [
+            'RETURNED_INVOICE_ID' => $RETURNED_INVOICE_ID,
+            'RETURNED_INVOICE' => $RETURNED_INVOICE,
+        ]);
+        return json_encode(array('result' => $view));
+    }
+
     public function Normal_Invoice($IN_ID)
     {
         $INVOICE_ID = urldecode(base64_decode($IN_ID));
@@ -707,7 +786,7 @@ class StockController extends Controller
             ->setOption('margin-bottom', 0)
             ->setOption('margin-left', 0);
 
-        return $pdf->download('Invoice - ' . $INVOICE_DATA->in_invoice_no . '.pdf');
+        return $pdf->stream('Invoice - ' . $INVOICE_DATA->in_invoice_no . '.pdf');
     }
 
     public function VAT_Invoice($IN_ID)
@@ -739,6 +818,6 @@ class StockController extends Controller
             ->setOption('margin-bottom', 0)
             ->setOption('margin-left', 0);
 
-        return $pdf->download('VAT Invoice - ' . $INVOICE_DATA->in_invoice_no . '.pdf');
+        return $pdf->stream('VAT Invoice - ' . $INVOICE_DATA->in_invoice_no . '.pdf');
     }
 }

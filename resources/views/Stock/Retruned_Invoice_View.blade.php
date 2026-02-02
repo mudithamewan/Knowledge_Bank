@@ -20,7 +20,7 @@
         }
 
         .invoice_content h2 {
-            color: #3A47D5;
+            color: #f46a6a;
             margin-bottom: 5px;
         }
 
@@ -41,7 +41,7 @@
 
         .invoice_content hr {
             border: none;
-            border-top: 2px solid #3A47D5;
+            border-top: 2px solid #24272b;
             margin: 20px 0;
         }
 
@@ -55,7 +55,7 @@
         }
 
         .invoice_content .invoice-info strong {
-            color: #3A47D5;
+            color: #24272b;
         }
 
         .invoice_content .billed-to {
@@ -81,7 +81,7 @@
         }
 
         .tbl table th {
-            background-color: #3A47D5;
+            background-color: #f46a6a;
             color: white;
             font-weight: 600;
         }
@@ -115,8 +115,8 @@
             padding: 5px;
         }
 
-        .invoice_content .total-box tr:nth-child(3) td {
-            background-color: #3A47D5;
+        .invoice_content .total-box tr:nth-child(1) td {
+            background-color: #f46a6a;
             color: #fff;
             font-weight: bold;
         }
@@ -131,7 +131,7 @@
 
     <div class="invoice_content">
         <div class="header">
-            <h2 style="font-weight: 600;">INVOICE</h2>
+            <h2 style="font-weight: 600;">RETURNED INVOICE</h2>
             <div class="company-details">
                 <strong>Knowledge Bank Publisher</strong><br>
                 VAT No: 102274292 - 7000<br>
@@ -144,22 +144,11 @@
         <hr>
 
         <div class="invoice-info">
-            <p><strong>Invoice No:</strong> {{$INVOICE_DATA->in_invoice_no}}</p>
-            <p><strong>Date:</strong> {{$INVOICE_DATA->in_inserted_date}}</p>
-            <p><strong>Payment Method:</strong> {{$INVOICE_DATA->mpt_name}}</p>
+            <p><strong>Invoice No:</strong> {{$RETURNED_INVOICE[0]->in_invoice_no}}</p>
+            <p><strong>Returned Invoice No:</strong> {{$RETURNED_INVOICE[0]->ri_invoice_no}}</p>
+            <p><strong>Returned Date:</strong> {{$RETURNED_INVOICE[0]->ri_inserted_date}}</p>
+            <p><strong>Status:</strong> {!!$RETURNED_INVOICE[0]->ri_claim_status == 1 ? '<span class="badge badge-pill badge-soft-success font-size-11">CLAIMED</span>' : '<span class="badge badge-pill badge-soft-warning font-size-11">PENDING</span>'!!}</p>
 
-            @if(!empty($CUSTOMER_DETAILS))
-            <div class="billed-to">
-                <strong>Billed To:</strong>
-                @if(isset($CUSTOMER_DETAILS->o_id))
-                {{$CUSTOMER_DETAILS->o_name}}
-                {{$CUSTOMER_DETAILS->o_address}}
-                @else
-                {{$CUSTOMER_DETAILS->c_title}} {{$CUSTOMER_DETAILS->c_name}}
-                {{$CUSTOMER_DETAILS->c_address}}
-                @endif
-            </div>
-            @endif
         </div>
 
         <div class="tbl">
@@ -167,40 +156,25 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>ITEM DESCRIPTION</th>
-                        <th>UNIT PRICE (LKR)</th>
+                        <th>RETURNED ITEM CODE</th>
+                        <th>RETURNED ITEM</th>
                         <th>QTY</th>
-
-                        @if($INVOICE_DATA->in_is_returned == 1 || $INVOICE_DATA->in_is_partial_returned == 1)
-                        <th>RETURNED QTY</th>
-                        @endif
-
-                        <th>PRICE (LKR)</th>
-                        <th>DIS.%</th>
+                        <th>PRICE</th>
                         <th>TOTAL</th>
                     </tr>
                 </thead>
                 <tbody>
 
-                    @foreach($INVOICE_ITEMS_DATA as $index => $data)
+                    @php $tot = 0; @endphp
+                    @foreach ($RETURNED_INVOICE as $index => $data)
+                    @php $tot = $tot + ($data->rii_selling_amount * $data->rii_qty); @endphp
                     <tr>
-                        <td>{{$index+1}}
-                            @if($data->ini_is_returned == 1)
-                            <span class="badge badge-pill badge-soft-danger font-size-5">RETURNED</span>
-                            @endif
-                        </td>
+                        <td>{{$index+1}}</td>
+                        <td>{{$data->p_isbn}}</td>
                         <td>{{$data->p_name}}</td>
-                        <td class="text-right">{{number_format($data->ini_selling_price,2)}}</td>
-                        <td class="text-right">{{$data->ini_qty}}</td>
-
-                        @if($INVOICE_DATA->in_is_returned == 1 || $INVOICE_DATA->in_is_partial_returned == 1)
-                        <td class="text-right">{{$data->ini_returned_qty}}</td>
-                        @endif
-
-                        <td class="text-right">{{number_format(($data->ini_selling_price * $data->ini_qty),2)}}</td>
-                        <td class="text-right">{{$data->ini_discount_percentage}}</td>
-                        <td class="text-right">{{number_format(($data->ini_final_price * $data->ini_qty),2)}}</td>
-
+                        <td style="text-align: center;">{{$data->rii_qty}}</td>
+                        <td style="text-align: right;">{{number_format($data->rii_selling_amount,2)}}</td>
+                        <td style="text-align: right;">{{number_format($data->rii_selling_amount * $data->rii_qty,2)}}</td>
                     </tr>
                     @endforeach
 
@@ -212,34 +186,15 @@
             <table>
                 <tr>
                     <td>Subtotal</td>
-                    <td class="text-right">{{number_format($INVOICE_DATA->in_sub_total,2)}}</td>
-                </tr>
-                <tr>
-                    <td>Discount ({{$INVOICE_DATA->in_discount_percentage}}%)</td>
-                    <td class="text-right">{{number_format($INVOICE_DATA->in_discount_amount,2)}}</td>
-                </tr>
-                <tr>
-                    <td>Total Payable</td>
-                    <td class="text-right">{{number_format($INVOICE_DATA->in_total_payable,2)}}</td>
-                </tr>
-                <tr>
-                    <td>Paid</td>
-                    <td class="text-right">{{number_format($INVOICE_DATA->in_total_paid_amount,2)}}</td>
-                </tr>
-                <tr>
-                    <td>Balance</td>
-                    <td class="text-right">{{number_format($INVOICE_DATA->in_total_balance,2)}}</td>
+                    <td class="text-right">{{number_format($tot,2)}}</td>
                 </tr>
             </table>
         </div>
 
         <hr>
-        <button type="button" class="btn btn-success waves-effect btn-label waves-light w-lg" onclick="loadPrintInvoice(`{{url('/')}}/PrintInvoice/{{urlencode(base64_encode($INVOICE_DATA->in_id))}}`)"><i class="bx bx-printer label-icon"></i> 3IN PRINT</button>
-        <button type="button" class="btn btn-success waves-effect btn-label waves-light w-lg" onclick="loadPrintInvoice(`{{url('/')}}/Normal_Invoice/{{urlencode(base64_encode($INVOICE_DATA->in_id))}}`)"><i class="mdi mdi-download label-icon"></i> INVOICE</button>
-        <button type="button" class="btn btn-success waves-effect btn-label waves-light w-lg" onclick="loadPrintInvoice(`{{url('/')}}/VAT_Invoice/{{urlencode(base64_encode($INVOICE_DATA->in_id))}}`)"><i class="bx bx-receipt label-icon"></i> VAT INVOICE</button>
-        @if(count($RETURNED_INVOICE) > 0)
+
         <button type="button" class="btn btn-danger waves-effect btn-label waves-light w-lg" onclick="loadPrintInvoice(`{{url('/')}}/PrintReturnInvoice/{{urlencode(base64_encode($RETURNED_INVOICE[0]->ri_id))}}`)"><i class="bx bx-printer label-icon"></i> RETURNED INVOICE</button>
-        @endif
+
     </div>
 
 

@@ -95,7 +95,7 @@
             <td>{{strtoupper($data->p_isbn)}}</td>
             <td>{{strtoupper($data->p_name)}}</td>
             <td style="text-align: center;">{{strtoupper($data->ini_qty)}}</td>
-            <td style="text-align: right;">{{number_format((($data->ini_selling_price - ($data->ini_selling_price*$RATE)) * $data->ini_qty),2)}}</td>
+            <td style="text-align: right;">{{number_format(($data->ini_final_price - ($data->ini_final_price*$RATE)),2)}}</td>
             <td style="text-align: right;">{{number_format((($data->ini_final_price - ($data->ini_final_price*$RATE)) * $data->ini_qty),2)}}</td>
         </tr>
         @endforeach
@@ -172,9 +172,9 @@
         </tr>
         <tr>
             <td colspan="3" style="border: none;">
-                All cheques should be crossed and drawn in favour of Knowledge Bank Publisher <br>
-                Check whether the books you have received tally with the invoice if not, inform within 07 days. <br>
-                The goods sold cannot be returned.
+                <i> All cheques should be crossed and drawn in favour of Knowledge Bank Publisher <br>
+                    Check whether the books you have received tally with the invoice if not, inform within 07 days. <br>
+                    The goods sold cannot be returned. </i>
             </td>
         </tr>
     </table>

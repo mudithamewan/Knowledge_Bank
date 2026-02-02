@@ -144,9 +144,13 @@ Route::middleware(['check.islog'])->group(function () {
     Route::post('/get_stock_filter_result', [StockController::class, 'get_stock_filter_result'])->name('/get_stock_filter_result')->middleware('checkAccess:21');
     Route::post('/get_stock_filter_result_table', [StockController::class, 'get_stock_filter_result_table'])->name('/get_stock_filter_result_table')->middleware('checkAccess:21');
     Route::get('/Invoices', [StockController::class, 'Invoices'])->name('/Invoices')->middleware('checkAccess:24');
+    Route::get('/Returned_Invoices', [StockController::class, 'Returned_Invoices'])->name('/Returned_Invoices')->middleware('checkAccess:37');
     Route::post('/get_invoice_filter_result', [StockController::class, 'get_invoice_filter_result'])->name('/get_invoice_filter_result')->middleware('checkAccess:24');
+    Route::post('/get_returned_invoice_filter_result', [StockController::class, 'get_returned_invoice_filter_result'])->name('/get_returned_invoice_filter_result')->middleware('checkAccess:37');
     Route::post('/get_invoices_filter_result_table', [StockController::class, 'get_invoices_filter_result_table'])->name('/get_invoices_filter_result_table')->middleware('checkAccess:24');
+    Route::post('/get_returned_invoices_filter_result_table', [StockController::class, 'get_returned_invoices_filter_result_table'])->name('/get_returned_invoices_filter_result_table')->middleware('checkAccess:37');
     Route::post('/load_invoice', [StockController::class, 'load_invoice'])->name('/load_invoice')->middleware('checkAccess:24');
+    Route::post('/load_returned_invoice', [StockController::class, 'load_returned_invoice'])->name('/load_returned_invoice')->middleware('checkAccess:37');
     Route::get('/Normal_Invoice/{IN_ID}', [StockController::class, 'Normal_Invoice'])->name('/Normal_Invoice');
     Route::get('/VAT_Invoice/{IN_ID}', [StockController::class, 'VAT_Invoice'])->name('/VAT_Invoice');
 });
