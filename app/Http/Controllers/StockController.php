@@ -427,6 +427,7 @@ class StockController extends Controller
                 'in_mw_id' => $MW_ID,
                 'in_vat_rate' => config('constants.VAT_RATE'),
                 'in_mcp_id' => $MPT_ID == 5 ? $MCP_ID : null,
+                'in_is_credit_settled' => 0,
             );
             $IN_ID = DB::table('invoices')->insertGetId($data1);
 
