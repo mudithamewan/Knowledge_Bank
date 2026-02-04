@@ -189,7 +189,7 @@ class POSController extends Controller
             return json_encode(array('error' => 'Customer not selected!'));
         }
 
-        $CUSTOMER_DETAILS = $UserModel->get_organization_data($CUS_ID);;
+        $CUSTOMER_DETAILS = $UserModel->get_organization_data($CUS_ID);
         $MW_ID = session('POS_WAREHOUSE');
         $ORDERS = $OrdersModel->get_collected_orders_by_customer_id2($CUS_ID, $MW_ID);
         $view = null;
@@ -197,7 +197,7 @@ class POSController extends Controller
             $view = (string)view('POS/Order_View', ['ORDERS' => $ORDERS, 'customer_id' => $CUSTOMER_DETAILS->o_id]);
         }
 
-        return json_encode(array('have_customer' => true, 'credit_allow' => $CUSTOMER_DETAILS->o_credit_allow, 'customer_id' => $CUSTOMER_DETAILS->o_id, 'customer_name' => $CUSTOMER_DETAILS->o_business_name, 'customer_title' => $CUSTOMER_DETAILS->o_br_number, 'order_view' => $view));
+        return json_encode(array('have_customer' => true, 'is_vat_registered' => $CUSTOMER_DETAILS->o_is_vat_registered, 'credit_allow' => $CUSTOMER_DETAILS->o_credit_allow, 'customer_id' => $CUSTOMER_DETAILS->o_id, 'customer_name' => $CUSTOMER_DETAILS->o_business_name, 'customer_title' => $CUSTOMER_DETAILS->o_br_number, 'order_view' => $view));
     }
 
     public function PrintInvoice($INVOICE_ID)

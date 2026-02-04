@@ -313,6 +313,7 @@ class StockController extends Controller
         $CommonModel = new CommonModel();
         $StockModel = new StockModel();
         $SettingsModel = new SettingsModel();
+        $UserModel = new UserModel();
 
         $ITEMS = $request->input('items');
         $MW_ID = trim($request->input('MW_ID'));
@@ -400,6 +401,13 @@ class StockController extends Controller
             }
         }
 
+        $VAT_INVOICE = false;
+        $CUSTOMER_DETAILS = $UserModel->get_organization_data($CUS_ID);
+        if ($CUSTOMER_DETAILS == true) {
+            if ($CUSTOMER_DETAILS->o_is_vat_registered == 1) {
+                $VAT_INVOICE = true;
+            }
+        }
 
         DB::beginTransaction();
         try {
@@ -410,7 +418,7 @@ class StockController extends Controller
                 'in_inserted_by' => session('USER_ID'),
                 'in_updated_date' => date('Y-m-d H:i:s'),
                 'in_updated_by' => session('USER_ID'),
-                'in_invoice_no' => $StockModel->generateInvoiceNo(),
+                'in_invoice_no' => $StockModel->generateInvoiceNo($VAT_INVOICE),
                 'in_sub_total' => $SUB_TOTAL,
                 'in_discount_percentage' => $DISCOUNT_PERCENTAGE,
                 'in_discount_amount' => $DISCOUNT_AMOUNT,
@@ -428,6 +436,7 @@ class StockController extends Controller
                 'in_vat_rate' => config('constants.VAT_RATE'),
                 'in_mcp_id' => $MPT_ID == 5 ? $MCP_ID : null,
                 'in_is_credit_settled' => 0,
+                'in_is_vat_invoice' => $VAT_INVOICE == true ? 1 : 0,
             );
             $IN_ID = DB::table('invoices')->insertGetId($data1);
 

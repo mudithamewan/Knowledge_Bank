@@ -351,11 +351,13 @@ class SettingsController extends Controller
             $SettingsModel = new SettingsModel();
             $WAREHOUSE_DETAILS = $SettingsModel->get_stock_location_details_by_id($WAREHOUSE_ID);
             $STOCK_LOCATION_TYPES = $SettingsModel->get_stock_location_types();
+            $USERS = $SettingsModel->get_system_users();
 
             $view = (string)view('Settings/Load_Edit_Stock_Location_View', [
                 'WAREHOUSE_ID' => $WAREHOUSE_ID,
                 'WAREHOUSE_DETAILS' => $WAREHOUSE_DETAILS,
                 'STOCK_LOCATION_TYPES' => $STOCK_LOCATION_TYPES,
+                'USERS' => $USERS,
             ]);
             return json_encode(array('result' => $view));
         }
@@ -364,6 +366,7 @@ class SettingsController extends Controller
     public function update_stock_location(Request $request)
     {
         $ValidationModel = new ValidationModel();
+        $UserModel = new UserModel();
 
         $error = "";
         $MW_ID = trim($request->input('MW_ID'));
@@ -374,18 +377,12 @@ class SettingsController extends Controller
         $ADDRESS = trim($request->input('ADDRESS'));
         $TYPE = trim($request->input('TYPE'));
         $VEHICLE_NO = trim($request->input('VEHICLE_NO'));
+        $USER_ID = trim($request->input('USER_ID'));
 
         if ($ValidationModel->is_invalid_data($NAME)) {
             $error .= "- Name cannot be empty<br>";
         }
-        if ($ValidationModel->is_invalid_data($CONTACT_NUMBER)) {
-            // $error .= "- Contact number cannot be empty<br>";
-        } else if ($ValidationModel->is_invalid_sl_contact($CONTACT_NUMBER)) {
-            $error .= "- Invalid Contact number address!<br>";
-        }
-        if ($ValidationModel->is_invalid_data($ADDRESS)) {
-            $error .= "- Address cannot be empty<br>";
-        }
+
         if ($STATUS == '1' || $STATUS == '0') {
         } else {
             $error .= "- Invalid Status Code.<br>";
@@ -396,6 +393,21 @@ class SettingsController extends Controller
             if ($ValidationModel->is_invalid_data($VEHICLE_NO)) {
                 $error .= "- Vehicle Number cannot be empty<br>";
             }
+            if ($ValidationModel->is_invalid_data($VEHICLE_NO)) {
+                $error .= "- Vehicle Number cannot be empty<br>";
+            }
+            if ($ValidationModel->is_invalid_data($USER_ID)) {
+                $error .= "- User cannot be empty<br>";
+            }
+        } else {
+            if ($ValidationModel->is_invalid_data($CONTACT_NUMBER)) {
+                // $error .= "- Contact number cannot be empty<br>";
+            } else if ($ValidationModel->is_invalid_sl_contact($CONTACT_NUMBER)) {
+                $error .= "- Invalid Contact number address!<br>";
+            }
+            if ($ValidationModel->is_invalid_data($ADDRESS)) {
+                $error .= "- Address cannot be empty<br>";
+            }
         }
 
         if (!empty($error)) {
@@ -403,7 +415,15 @@ class SettingsController extends Controller
         } else {
             DB::beginTransaction();
             try {
+
                 $CommonModel = new CommonModel();
+
+                if ($TYPE == 3) {
+                    $USER_INFO = $UserModel->get_user_data($USER_ID);
+                    $CONTACT_NUMBER = $USER_INFO->su_contact_number;
+                    $EMAIL = $USER_INFO->su_email;
+                    $ADDRESS = $USER_INFO->su_address_line_01 . " " . $USER_INFO->su_address_line_02 . " " . $USER_INFO->su_address_line_03;
+                }
 
                 $data1 = array(
                     'mw_updated_date' => date('Y-m-d H:i:s'),
@@ -419,6 +439,28 @@ class SettingsController extends Controller
                 DB::table('master_warehouses')
                     ->where('mw_id', $MW_ID)
                     ->update($data1);
+
+
+                if ($TYPE == 3) {
+                    $data2 = array(
+                        'suw_status' => 0,
+                        'suw_updated_date' => date('Y-m-d H:i:s'),
+                        'suw_updated_by' => session('USER_ID'),
+                    );
+                    DB::table('system_user_warehouses')
+                        ->where('suw_su_id', $USER_ID)
+                        ->where('suw_mw_id', $MW_ID)
+                        ->update($data2);
+
+                    $data3 = array(
+                        'suw_status' => 1,
+                        'suw_inserted_date' => date('Y-m-d H:i:s'),
+                        'suw_inserted_by' => session('USER_ID'),
+                        'suw_su_id' => $USER_ID,
+                        'suw_mw_id' => $MW_ID,
+                    );
+                    DB::table('system_user_warehouses')->insert($data3);
+                }
 
                 $CommonModel->update_work_log(session('USER_ID'), 'Stock Location details has been updated. Stock Location ID:' . $MW_ID);
 
