@@ -151,6 +151,22 @@ Route::middleware(['check.islog'])->group(function () {
     Route::post('/get_returned_invoices_filter_result_table', [StockController::class, 'get_returned_invoices_filter_result_table'])->name('/get_returned_invoices_filter_result_table')->middleware('checkAccess:37');
     Route::post('/load_invoice', [StockController::class, 'load_invoice'])->name('/load_invoice')->middleware('checkAccess:24');
     Route::post('/load_returned_invoice', [StockController::class, 'load_returned_invoice'])->name('/load_returned_invoice')->middleware('checkAccess:37');
+
+    Route::get('/Request_Destroy', [StockController::class, 'Request_Destroy'])->name('/Request_Destroy')->middleware('checkAccess:38');
+    Route::post('/save_destroy_request', [StockController::class, 'save_destroy_request'])->name('/save_destroy_request')->middleware('checkAccess:38');
+    Route::get('/Destroy_Request_View/{REQ_ID}', [StockController::class, 'Destroy_Request_View'])->name('/Destroy_Request_View')->middleware('checkAccess:38||39||40||41||42||43');
+    Route::post('/destroy_request_approve_action', [StockController::class, 'destroy_request_approve_action'])->name('/destroy_request_approve_action')->middleware('checkAccess:43');
+    Route::post('/update_destroy_items', [StockController::class, 'update_destroy_items'])->name('/update_destroy_items')->middleware('checkAccess:44');
+    Route::get('/Destroy_Pending_Approvals', [StockController::class, 'Destroy_Pending_Approvals'])->name('/Destroy_Pending_Approvals')->middleware('checkAccess:39');
+    Route::post('/get_destroy_request_approval_count', [StockController::class, 'get_destroy_request_approval_count'])->name('/get_destroy_request_approval_count')->middleware('checkAccess:39||40');
+    Route::post('/get_destroy_request_approval', [StockController::class, 'get_destroy_request_approval'])->name('/get_destroy_request_approval')->middleware('checkAccess:39||40');
+    Route::post('/get_approval_destroy_request_filter_result_table', [StockController::class, 'get_approval_destroy_request_filter_result_table'])->name('/get_approval_destroy_request_filter_result_table')->middleware('checkAccess:39||40');
+    Route::get('/Destroy_Returned_Approvals', [StockController::class, 'Destroy_Returned_Approvals'])->name('/Destroy_Returned_Approvals')->middleware('checkAccess:40');
+    Route::get('/Destroy_Completed_Approvals', [StockController::class, 'Destroy_Completed_Approvals'])->name('/Destroy_Completed_Approvals')->middleware('checkAccess:41');
+    Route::get('/Destroy_Requests', [StockController::class, 'Destroy_Requests'])->name('/Destroy_Requests')->middleware('checkAccess:42');
+    Route::post('/get_destroy_request_filter_result', [StockController::class, 'get_destroy_request_filter_result'])->name('/get_destroy_request_filter_result')->middleware('checkAccess:42');
+    Route::post('/get_destroy_request_filter_result_table', [StockController::class, 'get_destroy_request_filter_result_table'])->name('/get_destroy_request_filter_result_table')->middleware('checkAccess:42');
+
     Route::get('/Normal_Invoice/{IN_ID}', [StockController::class, 'Normal_Invoice'])->name('/Normal_Invoice');
     Route::get('/VAT_Invoice/{IN_ID}', [StockController::class, 'VAT_Invoice'])->name('/VAT_Invoice');
 });

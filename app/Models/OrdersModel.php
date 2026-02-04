@@ -37,10 +37,10 @@ class OrdersModel extends Model
             ->join('system_users', 'system_users.su_id', '=', 'orders.or_inserted_by')
             ->where('orders.or_status', 1);
 
-        if (empty($P_ID)) {
+        if (empty($OR_ID)) {
             $query->whereBetween('orders.or_inserted_date', [$formattedFromDate, $formattedToDate]);
         } else {
-            $query->where('orders.or_id', $P_ID);
+            $query->where('orders.or_id', $OR_ID);
         }
 
         $data =  $query->orderBy('orders.or_inserted_date')->get();

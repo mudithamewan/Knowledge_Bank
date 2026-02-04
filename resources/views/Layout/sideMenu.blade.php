@@ -36,7 +36,7 @@ $ACCESS_AREA_HEADINGS = session('USER_ACCESS_HEADERS');
                 <li>
                     <a href="javascript: void(0);" class="has-arrow waves-effect" aria-expanded="false">
                         <i class="bx bx-archive"></i>
-                        <span key="t-utility">Stock In</span>
+                        <span key="t-utility">Stock</span>
                     </a>
                     <ul class="sub-menu mm-collapse" aria-expanded="false">
                         @if(in_array("21", $accessArea))
@@ -79,6 +79,31 @@ $ACCESS_AREA_HEADINGS = session('USER_ACCESS_HEADERS');
                         @endif
                         @if(in_array("36", $accessArea))
                         <li><a href="{{url('/')}}/ALL_Punch_List">All Punch List</a></li>
+                        @endif
+                    </ul>
+                </li>
+                @endif
+                @if(in_array("38", $accessArea) || in_array("39", $accessArea) || in_array("40", $accessArea) || in_array("41", $accessArea))
+                <li>
+                    <a href="javascript: void(0);" class="has-arrow waves-effect" aria-expanded="false">
+                        <i class="bx bx-trash"></i>
+                        <span key="t-utility">Product Destroy</span>
+                    </a>
+                    <ul class="sub-menu mm-collapse" aria-expanded="false">
+                        @if(in_array("38", $accessArea))
+                        <li><a href="{{url('/')}}/Request_Destroy">Request Destroy</a></li>
+                        @endif
+                        @if(in_array("39", $accessArea))
+                        <li><a href="{{url('/')}}/Destroy_Pending_Approvals">Pending Approvals</a></li>
+                        @endif
+                        @if(in_array("40", $accessArea))
+                        <li><a href="{{url('/')}}/Destroy_Returned_Approvals">Returned Approvals</a></li>
+                        @endif
+                        @if(in_array("41", $accessArea))
+                        <li><a href="{{url('/')}}/Destroy_Completed_Approvals">Completed Approvals</a></li>
+                        @endif
+                        @if(in_array("42", $accessArea))
+                        <li><a href="{{url('/')}}/Destroy_Requests">Destroy Requests</a></li>
                         @endif
                     </ul>
                 </li>
