@@ -852,4 +852,585 @@ class StockController extends Controller
 
         return $pdf->stream('VAT Invoice - ' . $INVOICE_DATA->in_invoice_no . '.pdf');
     }
+
+    public function Request_Destroy()
+    {
+        $StockModel = new StockModel();
+
+        $WAREHOUSES = $StockModel->get_active_stock_locations();
+
+        return view('Destroy/Request_Destroy', [
+            'WAREHOUSES' => $WAREHOUSES
+        ]);
+    }
+
+    public function save_destroy_request(Request $request)
+    {
+        $StockModel = new StockModel();
+
+        $ValidationModel = new ValidationModel();
+        $CommonModel = new CommonModel();
+        $StockModel = new StockModel();
+
+        $ITEMS = $request->input('items');
+        $MW_ID = trim($request->input('MW_ID'));
+
+        $TOTAL_SELLING_AMOUNT = 0;
+        $TOTAL_QTY = 0;
+
+        if ($ValidationModel->is_invalid_data($MW_ID) || $MW_ID == 0) {
+            return json_encode(array('error' => 'Warehouse not selected.'));
+        }
+        if (count($ITEMS) <= 0) {
+            return json_encode(array('error' => 'Products not selected.'));
+        }
+
+        foreach ($ITEMS as $item) {
+            $ID = $item['id'];
+            $QTY = $item['qty'];
+
+            if ($ValidationModel->is_invalid_data($QTY)) {
+                return json_encode(array('error' => 'Quntiity not found!'));
+            } else if (!is_numeric($QTY)) {
+                return json_encode(array('error' => 'Invalid Quntiity!'));
+            } else if ($QTY <= 0) {
+                return json_encode(array('error' => 'Invalid Quntiity!'));
+            }
+
+
+            $AB_DETAILS = $StockModel->get_available_stock_data_by_id($ID);
+
+            if ($AB_DETAILS == false) {
+                return json_encode(array('error' => 'Available Stock cannot be accessed!'));
+            } else {
+                $AVAILABLE_QTY = $AB_DETAILS->as_available_qty;
+                if ($AVAILABLE_QTY < $QTY) {
+                    return json_encode(array(
+                        'error' => "Insufficient stock for {$AB_DETAILS->p_name} (Code: {$AB_DETAILS->p_id}). " .
+                            "Only {$AB_DETAILS->as_available_qty} units available at Rs. " . number_format($AB_DETAILS->as_selling_price, 2) . " each."
+                    ));
+                }
+            }
+
+            $TOTAL_SELLING_AMOUNT = $TOTAL_SELLING_AMOUNT + ($AB_DETAILS->as_selling_price * $QTY);
+            $TOTAL_QTY = $TOTAL_QTY + $QTY;
+        }
+
+        DB::beginTransaction();
+        try {
+
+            $data1 = array(
+                'dr_status' => 1,
+                'dr_inserted_date' => date('Y-m-d H:i:s'),
+                'dr_inserted_by' => session('USER_ID'),
+                'dr_updated_date' => date('Y-m-d H:i:s'),
+                'dr_updated_by' => session('USER_ID'),
+                'dr_drs_id' => 1,
+                'dr_mw_id' => $MW_ID,
+                'dr_item_count' => count($ITEMS),
+                'dr_tot_amount' => $TOTAL_SELLING_AMOUNT,
+                'dr_tot_qty' => $TOTAL_QTY,
+            );
+            $REQ_ID = DB::table('destroy_requests')->insertGetId($data1);
+
+            foreach ($ITEMS as $item) {
+                $ID = $item['id'];
+                $QTY = $item['qty'];
+
+                $AB_DETAILS = $StockModel->get_available_stock_data_by_id($ID);
+
+                $data2 = array(
+                    'dri_status' => 1,
+                    'dri_inserted_date' => date('Y-m-d H:i:s'),
+                    'dri_inserted_by' => session('USER_ID'),
+                    'dri_updated_date' => date('Y-m-d H:i:s'),
+                    'dri_updated_by' => session('USER_ID'),
+                    'dri_dr_id' => $REQ_ID,
+                    'dri_p_id' => $AB_DETAILS->p_id,
+                    'dri_qty' => $QTY,
+                    'dri_selling_amount' => $AB_DETAILS->as_selling_price,
+                    'dri_is_removed' => 0,
+                );
+                DB::table('destroy_request_items')->insert($data2);
+            }
+
+            $STOCK_OUT_ID = $StockModel->stock_out('', $ITEMS, $TOTAL_SELLING_AMOUNT, $TOTAL_QTY, 0, $MW_ID, true, 'DESTROY');
+            if ($STOCK_OUT_ID == false) {
+                return json_encode(array('error' => "Invalid Stock amount."));
+            }
+
+            $data3 = array(
+                'dra_status' => 1,
+                'dra_inserted_date' => date('Y-m-d H:i:s'),
+                'dra_inserted_by' => session('USER_ID'),
+                'dra_is_active' => 1,
+                'dra_dr_id' => $REQ_ID,
+                'dra_aa_id' => 1
+            );
+            DB::table('destroy_request_approvals')->insert($data3);
+
+            $StockModel->update_destroy_request_timeline($REQ_ID, 'REQUEST CREATED', 'Request has been created.');
+
+            $CommonModel->update_work_log(session('USER_ID'), 'Destroy Request has been created. Request ID:' . $REQ_ID);
+
+            DB::commit();
+            return json_encode(array('success' => 'Destroy Request has been created. Request ID:' . $REQ_ID, 'req_id' => $REQ_ID));
+        } catch (\Exception $e) {
+            DB::rollback();
+            return json_encode(array('error' => "An error occurred. Rollback executed. <br> Error: " . $e));
+        }
+    }
+
+    public function Destroy_Request_View($REQ_ID)
+    {
+        $StockModel = new StockModel();
+        $OrdersModel = new OrdersModel();
+
+        $REQ_ID = base64_decode(urldecode($REQ_ID));
+
+        $DESTROY_DETAILS = $StockModel->get_destroy_data_by_id($REQ_ID);
+        $DESTROY_ITEMS = $StockModel->get_destroy_items_by_id($REQ_ID, 0);
+        $REMOVED_DESTROY_ITEMS = $StockModel->get_destroy_items_by_id($REQ_ID, 1);
+        $TIMELINE = $StockModel->get_destroy_request_timeline_by_id($REQ_ID);
+        $APPROVALS = $StockModel->get_destroy_request_approvals($REQ_ID);
+        $APPROVALS_ACTION = $OrdersModel->get_approval_actions();
+
+        return view('Destroy/Destroy_Request_View', [
+            'REQ_ID' => $REQ_ID,
+            'DESTROY_DETAILS' => $DESTROY_DETAILS,
+            'DESTROY_ITEMS' => $DESTROY_ITEMS,
+            'REMOVED_DESTROY_ITEMS' => $REMOVED_DESTROY_ITEMS,
+            'TIMELINE' => $TIMELINE,
+            'APPROVALS' => $APPROVALS,
+            'APPROVALS_ACTION' => $APPROVALS_ACTION,
+        ]);
+    }
+
+    public function destroy_request_approve_action(Request $request)
+    {
+        $ValidationModel = new ValidationModel();
+        $CommonModel = new CommonModel();
+        $StockModel = new StockModel();
+
+        $DRA_ID = trim($request->input('DRA_ID'));
+        $AA_ID = trim($request->input('AA_ID'));
+        $REMARK = trim($request->input('REMARK'));
+
+        if ($ValidationModel->is_invalid_data($AA_ID)) {
+            return json_encode(array('error' => 'Action not selected!'));
+        } else if ($AA_ID == 3) {
+            if ($ValidationModel->is_invalid_data($REMARK)) {
+                return json_encode(array('error' => 'Remark not found!'));
+            }
+        }
+
+        $APPROVAL_DETAILS = $StockModel->get_destroy_request_approval_details($DRA_ID);
+        $DESTROY_ITEMS = $StockModel->get_destroy_items_by_id($APPROVAL_DETAILS->dra_dr_id, 0);
+
+        $qty_count = 0;
+        $item_count = 0;
+        $tot_value = 0;
+        foreach ($DESTROY_ITEMS as $ITEM) {
+            $qty_count = $qty_count + $ITEM->dri_qty;
+            $item_count++;
+            $tot_value = $tot_value + $ITEM->dri_selling_amount;
+        }
+
+        DB::beginTransaction();
+        try {
+            $data1 = array(
+                'dra_action_date' => date('Y-m-d H:i:s'),
+                'dra_action_by' => session('USER_ID'),
+                'dra_aa_id' => $AA_ID,
+                'dra_remark' => $REMARK,
+            );
+            DB::table('destroy_request_approvals')
+                ->where('dra_id', $DRA_ID)
+                ->update($data1);
+
+            $data2 = array(
+                'dr_updated_date' => date('Y-m-d H:i:s'),
+                'dr_updated_by' => session('USER_ID'),
+                'dr_drs_id' => $AA_ID == 2 ? 2 : 3,
+                'dr_item_count' => $item_count,
+                'dr_tot_amount' => $tot_value,
+                'dr_tot_qty' => $qty_count,
+            );
+            DB::table('destroy_requests')
+                ->where('dr_id', $APPROVAL_DETAILS->dra_dr_id)
+                ->update($data2);
+
+            if ($AA_ID == 2) {
+                $DESCRIPTION = "Destroy has been approved.";
+            } else {
+                $DESTROY_DETAILS = $StockModel->get_destroy_data_by_id($APPROVAL_DETAILS->dra_dr_id);
+                $DESTROY_ITEMS = $StockModel->get_destroy_items_by_id($APPROVAL_DETAILS->dra_dr_id, 0);
+
+                if (count($DESTROY_ITEMS) > 0) {
+                    $data1 = array(
+                        'sil_status' => 1,
+                        'sil_inserted_date' => date('Y-m-d H:i:s'),
+                        'sil_inserted_by' => session('USER_ID'),
+                        'sil_remark' => '',
+                        'sil_total_items' => count($DESTROY_ITEMS),
+                        'sil_mw_id' => $DESTROY_DETAILS->dr_mw_id,
+                        'sil_method' => 'DESTROY',
+                    );
+                    $STOCK_IN_ID = DB::table('stock_in_list')->insertGetId($data1);
+
+                    $TOTAL_PURCHASE_AMOUNT = 0;
+                    $TOTAL_SELLING_AMOUNT = 0;
+                    $TOTAL_QTY = 0;
+                    foreach ($DESTROY_ITEMS as $ITEM) {
+                        $TOTAL_PURCHASE_AMOUNT =   $TOTAL_PURCHASE_AMOUNT + 0;
+                        $TOTAL_SELLING_AMOUNT =   $TOTAL_SELLING_AMOUNT + $ITEM->dri_selling_amount;
+                        $TOTAL_QTY =   $TOTAL_QTY + $ITEM->dri_qty;
+
+                        $data3 = array(
+                            's_status' => 1,
+                            's_inserted_date' => date('Y-m-d H:i:s'),
+                            's_inserted_by' => session('USER_ID'),
+                            's_p_id' => $ITEM->p_id,
+                            's_purchase_amount' => 0,
+                            's_selling_amount' => $ITEM->dri_selling_amount,
+                            's_qty' => $ITEM->dri_qty,
+                            's_sil_id' => $STOCK_IN_ID,
+                            's_mw_id' => $DESTROY_DETAILS->dr_mw_id,
+                        );
+                        DB::table('stock')->insert($data3);
+
+                        $STATUS = $StockModel->update_available_stock($ITEM->p_id, $ITEM->dri_selling_amount,  $ITEM->dri_qty, $DESTROY_DETAILS->dr_mw_id, 'IN');
+                        if ($STATUS == false) {
+                            return false;
+                        }
+                    }
+
+                    $data4 = array(
+                        'sil_purchase_amount' => $TOTAL_PURCHASE_AMOUNT,
+                        'sil_selling_amount' => $TOTAL_SELLING_AMOUNT,
+                        'sil_total_qty' => $TOTAL_QTY,
+                    );
+                    DB::table('stock_in_list')
+                        ->where('sil_id', $STOCK_IN_ID)
+                        ->update($data4);
+                }
+
+
+                $DESCRIPTION = "Destroy has been rejected.";
+            }
+
+            $CommonModel->update_work_log(session('USER_ID'), 'Destroy Approval action has been placed. Request Id:' . $APPROVAL_DETAILS->dra_dr_id);
+
+            $StockModel->update_destroy_request_timeline($APPROVAL_DETAILS->dra_dr_id, 'DESTROY APPROVAL',  $DESCRIPTION);
+
+            DB::commit();
+            return json_encode(array('success' => 'Destroy Approval action has been placed.', 'dr_id' => $APPROVAL_DETAILS->dra_dr_id));
+        } catch (\Exception $e) {
+            DB::rollback();
+            return json_encode(array('error' => "An error occurred. Rollback executed. <br> Error: " . $e));
+        }
+    }
+
+    public function update_destroy_items(Request $request)
+    {
+        $StockModel = new StockModel();
+        $CommonModel = new CommonModel();
+
+        $REMOVED_IDS = json_decode($request->input('REMOVED_IDS'), true);
+        if (empty($REMOVED_IDS)) {
+            $REMOVED_IDS = array();
+            return json_encode(array('error' => 'No any change found!'));
+        }
+        $DR_ID = trim($request->input('DR_ID'));
+
+        $DESTROY_DETAILS = $StockModel->get_destroy_data_by_id($DR_ID);
+        $DESTROY_ITEMS = $StockModel->get_destroy_items_by_id($DR_ID, 0);
+
+        DB::beginTransaction();
+        try {
+            if (count($REMOVED_IDS) > 0) {
+                $data1 = array(
+                    'sil_status' => 1,
+                    'sil_inserted_date' => date('Y-m-d H:i:s'),
+                    'sil_inserted_by' => session('USER_ID'),
+                    'sil_remark' => '',
+                    'sil_total_items' => count($REMOVED_IDS),
+                    'sil_mw_id' => $DESTROY_DETAILS->dr_mw_id,
+                    'sil_method' => 'DESTROY',
+                );
+                $STOCK_IN_ID = DB::table('stock_in_list')->insertGetId($data1);
+            }
+
+            $TOTAL_PURCHASE_AMOUNT = 0;
+            $TOTAL_SELLING_AMOUNT = 0;
+            $TOTAL_QTY = 0;
+            $item_count = 0;
+            $tot_value = 0;
+            $qty_count = 0;
+
+            foreach ($DESTROY_ITEMS as $ITEM) {
+                if (in_array($ITEM->dri_id, $REMOVED_IDS)) {
+
+                    $TOTAL_PURCHASE_AMOUNT =   $TOTAL_PURCHASE_AMOUNT + 0;
+                    $TOTAL_SELLING_AMOUNT =   $TOTAL_SELLING_AMOUNT + $ITEM->dri_selling_amount;
+                    $TOTAL_QTY =   $TOTAL_QTY + $ITEM->dri_qty;
+
+                    $data2 = array(
+                        'dri_is_removed' => 1,
+                        'dri_removed_date' => date('Y-m-d H:i:s'),
+                        'dri_removed_by' => session('USER_ID'),
+                    );
+                    DB::table('destroy_request_items')
+                        ->where('dri_id', $ITEM->dri_id)
+                        ->update($data2);
+
+                    $data3 = array(
+                        's_status' => 1,
+                        's_inserted_date' => date('Y-m-d H:i:s'),
+                        's_inserted_by' => session('USER_ID'),
+                        's_p_id' => $ITEM->p_id,
+                        's_purchase_amount' => 0,
+                        's_selling_amount' => $ITEM->dri_selling_amount,
+                        's_qty' => $ITEM->dri_qty,
+                        's_sil_id' => $STOCK_IN_ID,
+                        's_mw_id' => $DESTROY_DETAILS->dr_mw_id,
+                    );
+                    DB::table('stock')->insert($data3);
+
+                    $STATUS = $StockModel->update_available_stock($ITEM->p_id, $ITEM->dri_selling_amount,  $ITEM->dri_qty, $DESTROY_DETAILS->dr_mw_id, 'IN');
+                    if ($STATUS == false) {
+                        return false;
+                    }
+                } else {
+                    $item_count++;
+                    $tot_value =  $tot_value + $ITEM->dri_selling_amount;
+                    $qty_count =  $qty_count + $ITEM->dri_qty;
+                }
+            }
+
+            $data5 = array(
+                'dr_updated_date' => date('Y-m-d H:i:s'),
+                'dr_updated_by' => session('USER_ID'),
+                'dr_item_count' => $item_count,
+                'dr_tot_amount' => $tot_value,
+                'dr_tot_qty' => $qty_count,
+            );
+            DB::table('destroy_requests')
+                ->where('dr_id', $DR_ID)
+                ->update($data5);
+
+
+            if (count($REMOVED_IDS) > 0) {
+                $data4 = array(
+                    'sil_purchase_amount' => $TOTAL_PURCHASE_AMOUNT,
+                    'sil_selling_amount' => $TOTAL_SELLING_AMOUNT,
+                    'sil_total_qty' => $TOTAL_QTY,
+                );
+                DB::table('stock_in_list')
+                    ->where('sil_id', $STOCK_IN_ID)
+                    ->update($data4);
+            }
+
+            $CommonModel->update_work_log(session('USER_ID'), 'Destroy request has been updated. Request Id:' . $DR_ID);
+            $StockModel->update_destroy_request_timeline($DR_ID, 'DESTROY REQUEST EDIT',  'Destroy request has been updated.');
+
+            DB::commit();
+            return json_encode(array('success' => 'Destroy request has been updated.', 'dr_id' => $DR_ID));
+        } catch (\Exception $e) {
+            DB::rollback();
+            return json_encode(array('error' => "An error occurred. Rollback executed. <br> Error: " . $e));
+        }
+    }
+
+    public function Destroy_Pending_Approvals()
+    {
+        $StockModel = new StockModel();
+
+        $WAREHOUSES = $StockModel->get_active_stock_locations();
+
+        return view('Destroy/Destroy_Pending_Approvals', [
+            'WAREHOUSES' => $WAREHOUSES,
+        ]);
+    }
+
+    public function get_destroy_request_filter_result_result($request)
+    {
+        $ValidationModel = new ValidationModel();
+        $error = "";
+
+        $FROM_DATE = trim($request->input('FROM_DATE'));
+        $TO_DATE = trim($request->input('TO_DATE'));
+        $DR_ID = trim($request->input('DR_ID'));
+
+        if ($ValidationModel->is_invalid_data($DR_ID)) {
+            $is_set_from_date = true;
+            $is_set_to_date = true;
+
+            if ($ValidationModel->is_invalid_data($FROM_DATE)) {
+                $is_set_from_date = false;
+                $error .= "- From Date cannot be empty<br>";
+            }
+            if ($ValidationModel->is_invalid_data($TO_DATE)) {
+                $is_set_to_date = false;
+                $error .= "- To Date cannot be empty<br>";
+            }
+
+            if ($is_set_from_date == true && $is_set_to_date == true) {
+                if ($ValidationModel->is_invalid_date_range($FROM_DATE, $TO_DATE)) {
+                    $error .= "- Invalid date range<br>";
+                }
+            }
+        }
+
+        return $error;
+    }
+
+    public function get_destroy_request_approval(Request $request)
+    {
+        $status = $this->get_destroy_request_filter_result_result($request);
+        if (!empty($status)) {
+            return json_encode(array('error' => $status));
+        } else {
+            $FROM_DATE = trim($request->input('FROM_DATE'));
+            $TO_DATE = trim($request->input('TO_DATE'));
+            $DR_ID = trim($request->input('DR_ID'));
+            $TYPE = trim($request->input('TYPE'));
+
+            $view = (string)view('Destroy/Manage_Approval_Destroy_Table', [
+                'FROM_DATE' => $FROM_DATE,
+                'TO_DATE' => $TO_DATE,
+                'DR_ID' => $DR_ID,
+                'TYPE' => $TYPE,
+            ]);
+            return json_encode(array('result' => $view));
+        }
+    }
+
+    public function get_approval_destroy_request_filter_result_table(Request $request)
+    {
+        $status = $this->get_destroy_request_filter_result_result($request);
+        if (!empty($status)) {
+            return json_encode(array('error' => $status));
+        } else {
+            $StockModel = new StockModel();
+
+            $FROM_DATE = trim($request->input('FROM_DATE'));
+            $TO_DATE = trim($request->input('TO_DATE'));
+            $DR_ID = trim($request->input('DR_ID'));
+            $TYPE = trim($request->input('TYPE'));
+            $DOWNLOAD = trim($request->input('DOWNLOAD'));
+
+            $result = $StockModel->get_destroy_request_approval($TYPE, 0, $FROM_DATE, $TO_DATE, $DR_ID);
+
+            if ($DOWNLOAD == 'YES') {
+                $view = (string)view('Order/Download/Manage_Order_Table_Download', [
+                    'result' => $result,
+                ]);
+                header("Content-Type:   application/vnd.ms-excel; charset=utf-8");
+                header("Content-Disposition: attachment; filename=Filtered Products Download.xls");
+                header("Expires: 0");
+                header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+                header("Cache-Control: private", false);
+                echo $view;
+            } else {
+                if ($request->ajax()) {
+                    return datatables()->of($result)->toJson();
+                }
+            }
+        }
+    }
+
+    public function get_destroy_request_approval_count(Request $request)
+    {
+        $StockModel = new StockModel();
+        $TYPE = trim($request->input('TYPE'));
+        $count = $StockModel->get_destroy_request_approval($TYPE, 1);
+
+        return json_encode(array('result' => $count));
+    }
+
+    public  function Destroy_Returned_Approvals()
+    {
+        $StockModel = new StockModel();
+
+        $WAREHOUSES = $StockModel->get_active_stock_locations();
+
+        return view('Destroy/Destroy_Returned_Approvals', [
+            'WAREHOUSES' => $WAREHOUSES,
+        ]);
+    }
+
+    public  function Destroy_Completed_Approvals()
+    {
+        $StockModel = new StockModel();
+
+        $WAREHOUSES = $StockModel->get_active_stock_locations();;
+
+        return view('Destroy/Destroy_Completed_Approvals', [
+            'WAREHOUSES' => $WAREHOUSES,
+        ]);
+    }
+
+    public function Destroy_Requests()
+    {
+        $StockModel = new StockModel();
+
+        $WAREHOUSES = $StockModel->get_active_stock_locations();;
+
+        return view('Destroy/Destroy_Requests', [
+            'WAREHOUSES' => $WAREHOUSES,
+        ]);
+    }
+
+    public function get_destroy_request_filter_result(Request $request)
+    {
+        $status = $this->get_destroy_request_filter_result_result($request);
+        if (!empty($status)) {
+            return json_encode(array('error' => $status));
+        } else {
+            $FROM_DATE = trim($request->input('FROM_DATE'));
+            $TO_DATE = trim($request->input('TO_DATE'));
+            $DR_ID = trim($request->input('DR_ID'));
+
+            $view = (string)view('Destroy/Manage_Destroy_Requests_Table', [
+                'FROM_DATE' => $FROM_DATE,
+                'TO_DATE' => $TO_DATE,
+                'DR_ID' => $DR_ID,
+            ]);
+            return json_encode(array('result' => $view));
+        }
+    }
+
+    public function get_destroy_request_filter_result_table(Request $request)
+    {
+        $status = $this->get_destroy_request_filter_result_result($request);
+        if (!empty($status)) {
+            return json_encode(array('error' => $status));
+        } else {
+            $StockModel = new StockModel();
+
+            $FROM_DATE = trim($request->input('FROM_DATE'));
+            $TO_DATE = trim($request->input('TO_DATE'));
+            $DR_ID = trim($request->input('DR_ID'));
+            $DOWNLOAD = trim($request->input('DOWNLOAD'));
+
+            $result = $StockModel->get_filtered_destroy_request_details($FROM_DATE, $TO_DATE, $DR_ID);
+
+            if ($DOWNLOAD == 'YES') {
+                $view = (string)view('Order/Download/Manage_Order_Table_Download', [
+                    'result' => $result,
+                ]);
+                header("Content-Type:   application/vnd.ms-excel; charset=utf-8");
+                header("Content-Disposition: attachment; filename=Filtered Products Download.xls");
+                header("Expires: 0");
+                header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+                header("Cache-Control: private", false);
+                echo $view;
+            } else {
+                if ($request->ajax()) {
+                    return datatables()->of($result)->toJson();
+                }
+            }
+        }
+    }
 }

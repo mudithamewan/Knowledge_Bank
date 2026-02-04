@@ -339,7 +339,7 @@ class StockModel extends Model
         return $STOCK_IN_ID;
     }
 
-    function stock_out($REMARK, $ITEMS, $TOTAL_SELLING_AMOUNT, $TOTAL_QTY, $TOTAL_DISCOUNT, $MW_ID, $WITH_UPDATE_AVAILABLE_STOCK = true)
+    function stock_out($REMARK, $ITEMS, $TOTAL_SELLING_AMOUNT, $TOTAL_QTY, $TOTAL_DISCOUNT, $MW_ID, $WITH_UPDATE_AVAILABLE_STOCK = true, $METHOD = "POS")
     {
         $data1 = array(
             'sol_status' => 1,
@@ -351,7 +351,7 @@ class StockModel extends Model
             'sol_total_qty' => $TOTAL_QTY,
             'sol_total_discount' => $TOTAL_DISCOUNT,
             'sol_mw_id' => $MW_ID,
-            'sol_method' => 'POS',
+            'sol_method' => $METHOD,
         );
         $STOCK_OUT_ID = DB::table('stock_out_list')->insertGetId($data1);
 
@@ -774,5 +774,202 @@ class StockModel extends Model
             ->get();
 
         return $result;
+    }
+
+    public function get_destroy_data_by_id($REQ_ID)
+    {
+        $data = DB::table('destroy_requests')
+            ->join(
+                'destroy_request_stages',
+                'destroy_request_stages.drs_id',
+                '=',
+                'destroy_requests.dr_drs_id'
+            )
+            ->join(
+                'system_users',
+                'system_users.su_id',
+                '=',
+                'destroy_requests.dr_inserted_by'
+            )
+            ->join(
+                'master_warehouses',
+                'master_warehouses.mw_id',
+                '=',
+                'destroy_requests.dr_mw_id'
+            )
+            ->where('destroy_requests.dr_id', $REQ_ID)
+            ->select('*')
+            ->first();
+
+        return $data;
+    }
+
+    public function get_destroy_items_by_id($REQ_ID, $IS_REMOVED)
+    {
+        $data = DB::table('destroy_request_items')
+            ->join(
+                'products',
+                'products.p_id',
+                '=',
+                'destroy_request_items.dri_p_id'
+            )
+            ->join(
+                'destroy_requests',
+                'destroy_requests.dr_id',
+                '=',
+                'destroy_request_items.dri_dr_id'
+            )
+            ->where('destroy_request_items.dri_status', 1)
+            ->where('destroy_request_items.dri_dr_id', $REQ_ID)
+            ->where('destroy_request_items.dri_is_removed', $IS_REMOVED)
+            ->select('*')
+            ->get();
+
+        return $data;
+    }
+
+    public function get_destroy_items_by_id2($REQ_ID)
+    {
+        $data = DB::table('destroy_request_items')
+            ->join(
+                'products',
+                'products.p_id',
+                '=',
+                'destroy_request_items.dri_p_id'
+            )
+            ->join(
+                'destroy_requests',
+                'destroy_requests.dr_id',
+                '=',
+                'destroy_request_items.dri_dr_id'
+            )
+            ->where('destroy_request_items.dri_status', 1)
+            ->where('destroy_request_items.dri_dr_id', $REQ_ID)
+            ->select('*')
+            ->get();
+
+        return $data;
+    }
+
+    public function update_destroy_request_timeline($REQ_ID, $TITLE, $DESCRIPTION)
+    {
+        $data = array(
+            'drt_status' => 1,
+            'drt_inserted_date' => date('Y-m-d H:i:s'),
+            'drt_inserted_by' => session('USER_ID'),
+            'drt_dr_id' => $REQ_ID,
+            'drt_title' => $TITLE,
+            'drt_description' => $DESCRIPTION,
+        );
+        DB::table('destroy_request_timeline')->insert($data);
+
+        return 1;
+    }
+
+    public function get_destroy_request_timeline_by_id($R_ID)
+    {
+        $data = DB::table('destroy_request_timeline')
+            ->select('*')
+            ->join('system_users', 'system_users.su_id', '=', 'destroy_request_timeline.drt_inserted_by')
+            ->where('destroy_request_timeline.drt_status', 1)
+            ->where('destroy_request_timeline.drt_dr_id', $R_ID)
+            ->get();
+
+        return $data;
+    }
+
+    public function get_destroy_request_approvals($R_ID)
+    {
+        $data = DB::table('destroy_request_approvals')
+            ->select(
+                'destroy_request_approvals.*',
+                'destroy_requests.*',
+                'approval_actions.*',
+                'iu.su_name as insert_user',
+                'iu.su_nic as insert_nic',
+                'au.su_name as action_user',
+                'au.su_nic as action_nic'
+            )
+            ->join('destroy_requests', 'destroy_requests.dr_id', '=', 'destroy_request_approvals.dra_dr_id')
+            ->join('approval_actions', 'approval_actions.aa_id', '=', 'destroy_request_approvals.dra_aa_id')
+            ->join('system_users as iu', 'iu.su_id', '=', 'destroy_request_approvals.dra_inserted_by')
+            ->leftJoin('system_users as au', 'au.su_id', '=', 'destroy_request_approvals.dra_action_by')
+            ->where('destroy_request_approvals.dra_status', 1)
+            ->where('destroy_requests.dr_id', $R_ID)
+            ->get();
+
+        return $data;
+    }
+
+    public function get_destroy_request_approval_details($DRA_ID)
+    {
+        $data = DB::table('destroy_request_approvals')
+            ->select('*')
+            ->join('approval_actions', 'approval_actions.aa_id', '=', 'destroy_request_approvals.dra_aa_id')
+            ->where('destroy_request_approvals.dra_id', $DRA_ID)
+            ->first();
+
+        return $data;
+    }
+
+    public function get_destroy_request_approval($TYPE, $IS_COUNT, $FROM_DATE = null, $TO_DATE = null, $DR_ID = null)
+    {
+        $query = DB::table('destroy_request_approvals')
+            ->select('*')
+            ->join('destroy_requests', 'destroy_requests.dr_id', '=', 'destroy_request_approvals.dra_dr_id')
+            ->join('destroy_request_stages', 'destroy_request_stages.drs_id', '=', 'destroy_requests.dr_drs_id')
+            ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'destroy_requests.dr_mw_id')
+            ->join('system_users', 'system_users.su_id', '=', 'destroy_requests.dr_inserted_by')
+            ->where('destroy_requests.dr_status', 1);
+
+        if (empty($DR_ID)) {
+            $formattedFromDate = date('Y-m-d', strtotime($FROM_DATE));
+            $formattedToDate = date('Y-m-d', strtotime($TO_DATE . ' +1 days'));
+
+            $query->whereBetween('destroy_requests.dr_inserted_date', [$formattedFromDate, $formattedToDate]);
+        } else {
+            $query->where('destroy_requests.dr_id', $DR_ID);
+        }
+
+        if ($TYPE == 1) {
+            $query->where('destroy_request_approvals.dra_aa_id', 1)
+                ->where('destroy_request_approvals.dra_status', 1);
+        } else if ($TYPE == 2) {
+            $query->where('destroy_request_approvals.dra_aa_id', 3)
+                ->where('destroy_request_approvals.dra_status', 1);
+        } else if ($TYPE == 3) {
+            $query->where('destroy_request_approvals.dra_aa_id', 2)
+                ->where('destroy_request_approvals.dra_status', 1);
+        }
+
+        if ($IS_COUNT == 0) {
+            $data = $query->get();
+        } else {
+            $data = (string)$query->count();
+        }
+        return $data;
+    }
+
+    public function get_filtered_destroy_request_details($FROM_DATE, $TO_DATE, $DR_ID)
+    {
+        $formattedFromDate = date('Y-m-d', strtotime($FROM_DATE));
+        $formattedToDate = date('Y-m-d', strtotime($TO_DATE . ' +1 days'));
+
+        $query = DB::table('destroy_requests')
+            ->select('*')
+            ->join('master_warehouses', 'master_warehouses.mw_id', '=', 'destroy_requests.dr_mw_id')
+            ->join('destroy_request_stages', 'destroy_request_stages.drs_id', '=', 'destroy_requests.dr_drs_id')
+            ->join('system_users', 'system_users.su_id', '=', 'destroy_requests.dr_inserted_by')
+            ->where('destroy_requests.dr_status', 1);
+
+        if (empty($DR_ID)) {
+            $query->whereBetween('destroy_requests.dr_inserted_date', [$formattedFromDate, $formattedToDate]);
+        } else {
+            $query->where('destroy_requests.dr_id', $DR_ID);
+        }
+
+        $data =  $query->orderBy('destroy_requests.dr_inserted_date')->get();
+
+        return $data;
     }
 }
