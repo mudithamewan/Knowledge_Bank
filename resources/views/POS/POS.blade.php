@@ -224,6 +224,7 @@
                                     <input type="hidden" name="MW_ID" id="MW_ID" value="{{session('POS_WAREHOUSE')}}">
                                     <input type="hidden" name="CUS_ID" id="CUS_ID">
                                     <input type="hidden" name="IS_CORPARATE" id="IS_CORPARATE" value="0">
+                                    <input type="hidden" name="VAT_CUSTOMER" id="VAT_CUSTOMER" value="0">
                                     <input type="hidden" name="OR_ID_VAL" id="OR_ID_VAL" value="">
 
                                     <table class="table  table-sm align-middle mb-0">
@@ -514,6 +515,7 @@
             // reset customer
             $("#CUS_ID").val("");
             $("#IS_CORPARATE").val("0");
+            $("#VAT_CUSTOMER").val("0");
             $("#customer_view_area").hide();
             $("#cus_name").text("");
             $("#cus_title").text("");
@@ -535,6 +537,7 @@
             initListeners();
             initKeyboardShortcuts();
             fiill_total();
+            resetPOS()
         });
 
         // ========================= WAREHOUSE HANDLING ========================= //
@@ -1026,8 +1029,15 @@
                 success: function(response) {
                     if (response.success) {
 
-                        // show & print invoice
-                        loadPrintInvoice(`{{url('/')}}/PrintInvoice/` + encodeURIComponent(btoa(response.in_id)));
+                        const VAT_CUSTOMER = $("#VAT_CUSTOMER").val();
+                        if (VAT_CUSTOMER == 1) {
+                            loadPrintInvoice(`{{url('/')}}/VAT_Invoice/` + encodeURIComponent(btoa(response.in_id)));
+                        } else {
+                            // show & print invoice
+                            loadPrintInvoice(`{{url('/')}}/PrintInvoice/` + encodeURIComponent(btoa(response.in_id)));
+                        }
+
+
                         // then clear POS for next bill
                         resetPOS();
                     } else if (response.error) {

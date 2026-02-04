@@ -391,15 +391,62 @@ class StockModel extends Model
         return $STOCK_OUT_ID;
     }
 
-    public function generateInvoiceNo()
+    public function generateInvoiceNo($VAT_INVOICE, $branchCode = 'KNB')
     {
-        $prefix = 'INV';
-        $date = date('Ymd');
-        $micro = microtime(true);
-        $rand = mt_rand(1000, 9999);
-        $unique = strtoupper(substr(md5($micro . $rand), 0, 6));
+        return DB::transaction(function () use ($VAT_INVOICE, $branchCode) {
 
-        return "{$prefix}-{$date}-{$unique}";
+            $today = date('Ymd');
+
+            /* ================= VAT INVOICE ================= */
+            if ($VAT_INVOICE) {
+
+                $day   = date('d');          // 26
+                $month = strtoupper(date('M')); // FEB
+
+                $prefix = "{$day}{$month}_{$branchCode}_";
+
+                // Lock last VAT invoice
+                $last = DB::table('invoices')
+                    ->where('in_invoice_no', 'like', $prefix . '%')
+                    ->where('in_is_vat_invoice', 1)
+                    ->lockForUpdate()
+                    ->orderBy('in_id', 'desc')
+                    ->first();
+
+                if ($last) {
+                    $lastSeq = intval(substr($last->in_invoice_no, -2));
+                    $next = $lastSeq + 1;
+                } else {
+                    $next = 1;
+                }
+
+                $seq = str_pad($next, 2, '0', STR_PAD_LEFT);
+
+                return "{$prefix}{$seq}";
+            }
+
+            /* ================= NORMAL INVOICE ================= */
+
+            $prefix = "INV-{$today}-";
+
+            $last = DB::table('invoices')
+                ->where('in_invoice_no', 'like', $prefix . '%')
+                ->where('in_is_vat_invoice', 0)
+                ->lockForUpdate()
+                ->orderBy('in_id', 'desc')
+                ->first();
+
+            if ($last) {
+                $lastSeq = intval(substr($last->in_invoice_no, -4));
+                $next = $lastSeq + 1;
+            } else {
+                $next = 1;
+            }
+
+            $seq = str_pad($next, 4, '0', STR_PAD_LEFT);
+
+            return "{$prefix}{$seq}";
+        });
     }
 
 

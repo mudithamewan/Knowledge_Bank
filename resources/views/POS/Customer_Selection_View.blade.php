@@ -200,6 +200,11 @@
                         if (data.order_view != null) {
                             $('#cus_order_view').html(data.order_view);
                         }
+                        if (data.is_vat_registered == 1) {
+                            $('#VAT_CUSTOMER').val(1);
+                        } else {
+                            $('#VAT_CUSTOMER').val(0);
+                        }
                         document.querySelector('#customer_modal .btn[data-bs-dismiss="modal"]').click();
                     }
 
@@ -257,6 +262,7 @@
                         $('#cus_name').html(data.customer_name);
                         $('#cus_title').html(data.customer_title);
                         $('#IS_CORPARATE').val(0);
+                        $('#VAT_CUSTOMER').val(0);
                         document.querySelector('#customer_modal .btn[data-bs-dismiss="modal"]').click();
                     }
 
